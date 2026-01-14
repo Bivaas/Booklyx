@@ -5,19 +5,25 @@ import Google from "next-auth/providers/google";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import mongoClientPromise from "@/lib/mongo-client";
 
-// Read directly from process.env to ensure Vercel vars are picked up
-const googleId = process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_ID;
-const googleSecret = process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_SECRET;
-const authSecret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
-const authUrl = process.env.NEXTAUTH_URL || process.env.AUTH_URL;
+// Lazy-load env vars at request time, not module load time
+// This ensures runtime = "nodejs" is enforced before env access
+function getAuthConfig() {
+  const googleId = process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_ID;
+  const googleSecret = process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_SECRET;
+  const authSecret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+  const authUrl = process.env.NEXTAUTH_URL || process.env.AUTH_URL;
 
-// Verify required credentials at module load time
-if (!googleId || !googleSecret) {
-  throw new Error(
-    "FATAL: AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET must be set. " +
-    `Got googleId=${googleId ? "set" : "MISSING"}, googleSecret=${googleSecret ? "set" : "MISSING"}`
-  );
+  if (!googleId || !googleSecret) {
+    throw new Error(
+      "FATAL: AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET must be set. " +
+      `Got googleId=${googleId ? "set" : "MISSING"}, googleSecret=${googleSecret ? "set" : "MISSING"}`
+    );
+  }
+
+  return { googleId, googleSecret, authSecret, authUrl };
 }
+
+const { googleId, googleSecret, authSecret, authUrl } = getAuthConfig();
 
 const providers: any[] = [];
 
