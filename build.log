@@ -1,0 +1,44 @@
+[1m[38;2;173;127;168mGû¦ Next.js 16.1.1[39m[22m (Turbopack)
+- Environments: .env.local
+
+[37m[1m [22m[39m Creating an optimized production build ...
+[32m[1mG£ô[22m[39m Compiled successfully in 26.7s
+[37m[1m [22m[39m Running TypeScript ...
+[37m[1m [22m[39m Collecting page data using 3 workers ...
+[37m[1m [22m[39m Generating static pages using 3 workers (0/17) ...
+[37m[1m [22m[39m Generating static pages using 3 workers (4/17) 
+[37m[1m [22m[39m Generating static pages using 3 workers (8/17) 
+[37m[1m [22m[39m Generating static pages using 3 workers (12/17) 
+[32m[1mG£ô[22m[39m Generating static pages using 3 workers (17/17) in 1656.2ms
+[37m[1m [22m[39m Finalizing page optimization ...
+
+[4mRoute (app)[24m
+Göî Gùï /
+Gö£ Gùï /_not-found
+Gö£ ¦Æ /[slug]
+Gö£ ¦Æ /api/auth/[auth0]
+Gö£ ¦Æ /api/availability
+Gö£ ¦Æ /api/bookings
+Gö£ ¦Æ /api/bookings/[id]
+Gö£ ¦Æ /api/business
+Gö£ ¦Æ /api/business/[slug]
+Gö£ ¦Æ /api/schedules
+Gö£ ¦Æ /api/schedules/[id]
+Gö£ ¦Æ /api/send
+Gö£ ¦Æ /api/services
+Gö£ ¦Æ /api/services/[id]
+Gö£ ¦Æ /api/staff
+Gö£ ¦Æ /api/staff/[id]
+Gö£ Gùï /auth/error
+Gö£ Gùï /auth/signin
+Gö£ Gùï /auth/signout
+Gö£ Gùï /dashboard
+Gö£ Gùï /dashboard/business
+Gö£ Gùï /dashboard/services
+Göö Gùï /dashboard/staff
+
+
+Gùï  (Static)   prerendered as static content
+¦Æ  (Dynamic)  server-rendered on demand
+
+

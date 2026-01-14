@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle, Clock, Trash2, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle, CheckCircle, Clock, Trash2, X, Calendar, AlertTriangle } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface Booking {
   _id: string;
@@ -74,31 +78,18 @@ export default function DashboardPage() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <Badge variant="success">Confirmed</Badge>;
       case "pending":
-        return <Clock className="h-4 w-4 text-yellow-500" />;
+        return <Badge variant="pending">Pending</Badge>;
       case "cancelled":
-        return <X className="h-4 w-4 text-red-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "pending":
-        return "bg-yellow-50 text-yellow-700 border-yellow-200";
-      case "cancelled":
-        return "bg-red-50 text-red-700 border-red-200";
+        return <Badge variant="destructive">Cancelled</Badge>;
       case "completed":
-        return "bg-blue-50 text-blue-700 border-blue-200";
+        return <Badge variant="info">Completed</Badge>;
       default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
+        return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
@@ -113,155 +104,202 @@ export default function DashboardPage() {
     });
   };
 
+  const formatShortDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   const upcomingCount = bookings.filter((b) => b.status === "confirmed").length;
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
-        <p className="text-gray-600 mt-2">Manage your customer appointments</p>
-      </div>
+    <div className="p-8 max-w-7xl mx-auto">
+      {/* Page Header */}
+      <motion.div
+        className="mb-10"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center">
+            <Calendar className="w-6 h-6 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Bookings</h1>
+        </div>
+        <p className="text-muted-foreground text-lg">View and manage all customer bookings</p>
+      </motion.div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card className="p-6">
-          <p className="text-sm text-gray-600 mb-2">Total Bookings</p>
-          <p className="text-3xl font-bold text-gray-900">{bookings.length}</p>
+      {/* Stats Cards */}
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        <Card className="border-l-4 border-l-primary">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Bookings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-3xl font-bold">{bookings.length}</div>
+            )}
+            <p className="text-xs text-muted-foreground mt-2">All time</p>
+          </CardContent>
         </Card>
-        <Card className="p-6">
-          <p className="text-sm text-gray-600 mb-2">Upcoming</p>
-          <p className="text-3xl font-bold text-green-600">{upcomingCount}</p>
+
+        <Card className="border-l-4 border-l-green-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-3xl font-bold text-green-600">{upcomingCount}</div>
+            )}
+            <p className="text-xs text-muted-foreground mt-2">Confirmed</p>
+          </CardContent>
         </Card>
-        <Card className="p-6">
-          <p className="text-sm text-gray-600 mb-2">Pending Confirmation</p>
-          <p className="text-3xl font-bold text-yellow-600">{pendingCount}</p>
+
+        <Card className="border-l-4 border-l-amber-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Pending Action</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-3xl font-bold text-amber-600">{pendingCount}</div>
+            )}
+            <p className="text-xs text-muted-foreground mt-2">Need confirmation</p>
+          </CardContent>
         </Card>
-      </div>
+      </motion.div>
+
+      {/* Error Alert */}
+      {error && (
+        <motion.div
+          className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start gap-3"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-destructive">{error}</p>
+        </motion.div>
+      )}
 
       {/* Filters */}
-      <div className="mb-6 flex gap-2">
-        {["all", "pending", "confirmed", "cancelled"].map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilter(status)}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              filter === status
-                ? "bg-indigo-600 text-white"
-                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-            }`}
-          >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {/* Error State */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
-          <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
-
-      {/* Loading State */}
-      {loading && (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading bookings...</p>
-        </div>
-      )}
-
-      {/* Bookings List */}
-      {!loading && bookings.length === 0 && (
-        <Card className="p-8 text-center">
-          <p className="text-gray-600 mb-4">No bookings found</p>
-          <Button variant="outline">Create a business to accept bookings</Button>
-        </Card>
-      )}
-
-      {!loading && bookings.length > 0 && (
-        <div className="space-y-4">
-          {bookings.map((booking) => (
-            <Card key={booking._id} className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {booking.customerName}
-                    </h3>
-                    <span
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-                        booking.status
-                      )}`}
-                    >
-                      {getStatusIcon(booking.status)}
-                      {booking.status.charAt(0).toUpperCase() +
-                        booking.status.slice(1)}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Service</p>
-                      <p className="font-medium text-gray-900">
-                        {booking.serviceName}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Customer Email</p>
-                      <p className="font-medium text-gray-900">
-                        {booking.customerEmail}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Date & Time</p>
-                      <p className="font-medium text-gray-900">
-                        {formatDate(booking.startTime)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Duration</p>
-                      <p className="font-medium text-gray-900">
-                        {Math.round(
-                          (new Date(booking.endTime).getTime() -
-                            new Date(booking.startTime).getTime()) /
-                            60000
-                        )}{" "}
-                        minutes
-                      </p>
-                    </div>
-                  </div>
-
-                  {booking.notes && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-1">Notes</p>
-                      <p className="text-sm text-gray-900">{booking.notes}</p>
-                    </div>
-                  )}
-                </div>
-
-                {booking.status !== "cancelled" && booking.status !== "completed" && (
-                  <div className="ml-4 flex gap-2 flex-shrink-0">
-                    <select
-                      value={booking.status}
-                      onChange={(e) =>
-                        handleStatusChange(booking._id, e.target.value)
-                      }
-                      disabled={updating === booking._id}
-                      className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="confirmed">Confirmed</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  </div>
-                )}
-              </div>
-            </Card>
+      <motion.div
+        className="mb-6 flex items-center gap-3"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+      >
+        <span className="text-sm font-medium text-muted-foreground">Filter:</span>
+        <div className="flex flex-wrap gap-2">
+          {["all", "pending", "confirmed", "cancelled", "completed"].map((status) => (
+            <Button
+              key={status}
+              variant={filter === status ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilter(status)}
+              className="capitalize"
+            >
+              {status}
+            </Button>
           ))}
         </div>
+      </motion.div>
+
+      {/* Table or Empty State */}
+      {loading ? (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-1/4" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </CardContent>
+        </Card>
+      ) : bookings.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <h3 className="text-lg font-medium text-foreground mb-1">No bookings found</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              {filter !== "all" 
+                ? "No bookings match the selected filter."
+                : "Create a business to start accepting bookings."}
+            </p>
+            <Button variant="outline" onClick={() => setFilter("all")}>
+              Clear Filters
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <motion.div
+          className="bg-card border border-border rounded-xl overflow-hidden shadow-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Service</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {bookings.map((booking, index) => (
+                  <motion.tr
+                    key={booking._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                  >
+                    <TableCell className="font-medium">{booking.customerName}</TableCell>
+                    <TableCell className="text-muted-foreground">{booking.serviceName}</TableCell>
+                    <TableCell className="text-sm">{formatShortDate(booking.startTime)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground truncate max-w-xs">
+                      {booking.customerEmail}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(booking.status)}</TableCell>
+                    <TableCell className="text-right">
+                      {booking.status !== "cancelled" && booking.status !== "completed" && (
+                        <select
+                          value={booking.status}
+                          onChange={(e) => handleStatusChange(booking._id, e.target.value)}
+                          disabled={updating === booking._id}
+                          className="text-xs px-2 py-1 border border-border rounded-lg bg-card text-foreground hover:bg-secondary cursor-pointer disabled:opacity-50"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      )}
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </motion.div>
       )}
     </div>
   );
