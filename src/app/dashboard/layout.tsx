@@ -13,9 +13,16 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { data: session, status } = useSession();
+  const session = useSession();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Handle undefined session during build/SSG
+  if (!session) {
+    return null;
+  }
+
+  const { data, status } = session;
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -87,7 +94,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="mt-8 pt-8 border-t space-y-3">
               <div className="px-4 py-3">
                 <p className="text-sm text-gray-600">Signed in as</p>
-                <p className="font-semibold text-gray-900">{session?.user?.name}</p>
+                <p className="font-semibold text-gray-900">{data?.user?.name}</p>
               </div>
 
               <Link href="/auth/signout" className="block w-full">
