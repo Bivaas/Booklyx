@@ -6,7 +6,7 @@ import { OTP } from "@/lib/models/otp";
 import { User } from "@/lib/models/user";
 import { hashEmail, hashString } from "@/lib/crypto";
 import { otpVerifySchema } from "@/lib/schemas/auth";
-import { auth, signIn } from "@/lib/auth";
+// Note: No NextAuth interaction needed here
 
 export async function POST(request: Request) {
   try {
