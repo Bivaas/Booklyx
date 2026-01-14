@@ -53,8 +53,6 @@ export async function GET(
       }
     }
 
-    }
-
     // Public lookup by slug
     if (!slug) {
       return NextResponse.json(
