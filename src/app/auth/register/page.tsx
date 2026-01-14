@@ -21,6 +21,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
       const res = await fetch("/api/auth/signup", {
@@ -39,6 +40,7 @@ export default function RegisterPage() {
 
       setSuccess("OTP sent to your email");
       setStep("verify");
+      setLoading(false);
     } catch (err) {
       setError("Network error. Please try again.");
       setLoading(false);
@@ -148,12 +150,17 @@ export default function RegisterPage() {
                 <Input
                   id="otp"
                   type="text"
+                  inputMode="numeric"
                   placeholder="000000"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    setOtp(cleaned);
+                  }}
                   maxLength={6}
                   required
                   disabled={loading}
+                  autoFocus
                   className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 text-center text-2xl tracking-widest font-mono"
                 />
               </div>
@@ -173,6 +180,7 @@ export default function RegisterPage() {
                   setStep("signup");
                   setOtp("");
                   setSuccess("");
+                  setError("");
                 }}
                 disabled={loading}
                 className="w-full border-slate-700 text-slate-300 hover:bg-slate-800"
