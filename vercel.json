@@ -1,15 +1,4 @@
 {
   "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "nextjs",
-  "nodeVersion": "20.x",
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "AUTH_SECRET": "@auth_secret",
-    "AUTH_GOOGLE_ID": "@auth_google_id",
-    "AUTH_GOOGLE_SECRET": "@auth_google_secret",
-    "RESEND_API_KEY": "@resend_api_key",
-    "EMAIL_FROM": "@email_from"
-  }
+  "framework": "nextjs"
 }
