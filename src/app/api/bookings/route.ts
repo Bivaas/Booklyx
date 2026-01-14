@@ -3,15 +3,6 @@ import { connectDb } from "@/lib/db";
 import { Booking, BookingStatus } from "@/lib/models/booking";
 import { Service } from "@/lib/models/service";
 import { Staff } from "@/lib/models/staff";
-import { Business } from "@/lib/models/business";
-import { bookingRequestSchema } from "@/lib/schemas/booking";
-import { sendBookingConfirmation } from "@/lib/notifications";
-
-import { NextResponse } from "next/server";
-import { connectDb } from "@/lib/db";
-import { Booking, BookingStatus } from "@/lib/models/booking";
-import { Service } from "@/lib/models/service";
-import { Staff } from "@/lib/models/staff";
 import { Business, BusinessStatus } from "@/lib/models/business";
 import { bookingRequestSchema } from "@/lib/schemas/booking";
 import { sendBookingConfirmation } from "@/lib/notifications";
