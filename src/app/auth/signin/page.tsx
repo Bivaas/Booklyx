@@ -89,9 +89,9 @@ function SignInContent() {
             <span className="text-slate-300">Need an account?</span>{" "}
             <button
               onClick={() => router.push("/auth/register")}
-              className="text-cyan-300 hover:text-cyan-200 font-semibold"
+              className="text-indigo-300 hover:text-indigo-200 font-semibold"
             >
-              Create one
+              Create account with email
             </button>
           </div>
         </div>
