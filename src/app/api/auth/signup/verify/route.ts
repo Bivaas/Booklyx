@@ -1,20 +1,23 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { connectDb } from "@/lib/db";
 import { OTP } from "@/lib/models/otp";
-import { User } from "@/lib/models/user";
+import { User, Role } from "@/lib/models/user";
 import { hashEmail, hashString } from "@/lib/crypto";
+import env from "@/lib/env";
 
 const verifySchema = z.object({
   email: z.string().email("Invalid email"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   otp: z.string().length(6, "OTP must be 6 digits"),
 });
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { email, otp } = verifySchema.parse(body);
+    const { email, password, otp } = verifySchema.parse(body);
     const emailHash = hashEmail(email);
 
     await connectDb();
@@ -68,6 +71,13 @@ export async function POST(request: Request) {
     otpRecord.verified = true;
     await otpRecord.save();
 
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Determine role: admin for specific email, customer for others
+    const adminEmails = env.ADMIN_EMAILS?.split(",").map(e => e.trim()) || [];
+    const userRole = adminEmails.includes(email) ? Role.ADMIN : Role.CUSTOMER;
+
     // Create or update user
     const now = new Date();
     let user = await User.findOne({ email });
@@ -75,12 +85,16 @@ export async function POST(request: Request) {
     if (!user) {
       user = await User.create({
         email,
+        password: hashedPassword,
         emailVerified: true,
         verifiedAt: now,
+        role: userRole,
       });
     } else {
+      user.password = hashedPassword;
       user.emailVerified = true;
       user.verifiedAt = now;
+      user.role = userRole;
       await user.save();
     }
 

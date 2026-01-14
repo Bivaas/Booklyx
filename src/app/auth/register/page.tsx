@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [step, setStep] = useState<"signup" | "verify">("signup");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,11 +24,17 @@ export default function RegisterPage() {
     setError("");
     setSuccess("");
 
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
@@ -56,7 +63,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/signup/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ email, password, otp }),
       });
 
       const data = await res.json();
@@ -122,9 +129,26 @@ export default function RegisterPage() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-slate-300">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="At least 8 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  disabled={loading}
+                  className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                />
+              </div>
+
               <Button
                 type="submit"
-                disabled={loading || !email}
+                disabled={loading || !email || !password}
                 className="w-full h-auto py-3 bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50"
               >
                 {loading ? "Sending..." : "Send OTP"}

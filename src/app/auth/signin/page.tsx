@@ -2,9 +2,11 @@
 
 import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
 
 function SignInContent() {
@@ -12,9 +14,24 @@ function SignInContent() {
   const router = useRouter();
   const error = searchParams.get("error");
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     await signIn("google", { callbackUrl });
+  };
+
+  const handleCredentialsSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    await signIn("credentials", {
+      email,
+      password,
+      callbackUrl,
+    });
   };
 
   return (
@@ -51,9 +68,62 @@ function SignInContent() {
         )}
 
         <div className="px-8 pb-8 space-y-4">
+          <form onSubmit={handleCredentialsSignIn} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-slate-300">
+                Email Address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-slate-300">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading || !email || !password}
+              className="w-full h-auto py-3 bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {loading ? "Signing in..." : "Sign in"}
+            </Button>
+          </form>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-slate-700" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-slate-900 px-2 text-slate-500">Or continue with</span>
+            </div>
+          </div>
+
           <Button
             onClick={handleGoogleSignIn}
-            className="w-full h-auto py-3 bg-white text-slate-900 font-semibold border border-slate-200 hover:border-slate-300 hover:bg-white/90 flex items-center justify-center shadow-sm"
+            type="button"
+            variant="outline"
+            className="w-full h-auto py-3 bg-slate-800/50 text-white font-semibold border border-slate-700 hover:border-slate-600 hover:bg-slate-800 flex items-center justify-center"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
               <path
@@ -76,18 +146,10 @@ function SignInContent() {
             Continue with Google
           </Button>
 
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-3 text-sm text-slate-200">
-            <p className="font-semibold text-slate-100">Having trouble?</p>
-            <ul className="mt-2 space-y-1 text-slate-300 list-disc list-inside">
-              <li>Confirm AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET are set on Vercel.</li>
-              <li>Set AUTH_URL/NEXTAUTH_URL to your production URL.</li>
-              <li>Google console: add the same URL to authorized redirect URIs.</li>
-            </ul>
-          </div>
-
           <div className="text-center text-sm text-slate-400">
             <span className="text-slate-300">Need an account?</span>{" "}
             <button
+              type="button"
               onClick={() => router.push("/auth/register")}
               className="text-indigo-300 hover:text-indigo-200 font-semibold"
             >
