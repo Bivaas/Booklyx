@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { connectDb } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { Business } from "@/lib/models/business";
+import { Business, BusinessStatus } from "@/lib/models/business";
 import { Service } from "@/lib/models/service";
 import { z } from "zod";
 
@@ -63,10 +63,11 @@ export async function GET(
 
     await connectDb();
 
-    // Find business by slug
+    // Find business by slug - ONLY APPROVED businesses visible to public
     const business = await Business.findOne({
       slug: slug.toLowerCase(),
       isActive: true,
+      status: BusinessStatus.APPROVED,
     }).select("-ownerId");
 
     if (!business) {

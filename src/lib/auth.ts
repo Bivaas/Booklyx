@@ -12,14 +12,19 @@ if (env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET) {
     Google({
       clientId: env.AUTH_GOOGLE_ID,
       clientSecret: env.AUTH_GOOGLE_SECRET,
-      allowDangerousEmailAccountLinking: true,
+      // SECURITY: Disabled dangerous email account linking
+      // Users cannot link Google OAuth to OTP-verified accounts
+      // This prevents social engineering attacks
+      allowDangerousEmailAccountLinking: false,
     })
   );
 }
 
 // Provide a default provider stub for development if no providers configured
 if (providers.length === 0) {
-  console.warn("Warning: No authentication providers configured. Set AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET.");
+  if (process.env.NODE_ENV === "development") {
+    console.warn("Warning: No authentication providers configured. Set AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET.");
+  }
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
