@@ -7,11 +7,14 @@ import env from "@/lib/env";
 const providers: any[] = [];
 
 // Only add Google provider if credentials are available
-if (env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET) {
+const googleId = env.AUTH_GOOGLE_ID || process.env.GOOGLE_ID;
+const googleSecret = env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_SECRET;
+
+if (googleId && googleSecret) {
   providers.push(
     Google({
-      clientId: env.AUTH_GOOGLE_ID,
-      clientSecret: env.AUTH_GOOGLE_SECRET,
+      clientId: googleId,
+      clientSecret: googleSecret,
       // SECURITY: Disabled dangerous email account linking
       // Users cannot link Google OAuth to OTP-verified accounts
       // This prevents social engineering attacks
