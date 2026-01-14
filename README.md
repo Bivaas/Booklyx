@@ -1,53 +1,176 @@
 # Appointment Booking System
 
-A production-ready B2B SaaS appointment booking platform built with Next.js, React, MongoDB, and Auth.js.
+A modern appointment booking platform that allows businesses to accept online bookings and manage their schedules.
 
 ## Features
 
-- **Multi-tenant Architecture**: Each business gets its own isolated booking space with custom branding
-- **Authentication & Authorization**: OAuth (Google) + email login via Auth.js with RBAC (Owner, Staff, Customer)
-- **Booking Management**: 
-  - Availability calculation with conflict resolution
-  - Automatic time slot blocking
-  - Booking status workflow (Pending → Confirmed → Completed/Cancelled)
-- **Staff Management**: Schedule multiple staff members with service assignments
-- **Notifications**: Email confirmations and cancellations via Resend
-- **Audit Logging**: Track admin actions and business events
-- **Rate Limiting**: Prevent booking spam with time-based limits
-- **Security**: Zod validation, CSRF protection, secure session handling
+- **Public Booking Page** - Customers can browse services and book appointments
+- **Admin Dashboard** - Manage bookings, services, staff, and business settings
+- **Email Confirmations** - Automatic booking confirmation emails
+- **Multi-Business Support** - Each business has its own booking space
+- **Responsive Design** - Works on desktop, tablet, and mobile
+- **Google OAuth** - Easy authentication for business owners
+- **Real-time Availability** - Show available time slots instantly
 
 ## Tech Stack
 
-### Frontend
-- **Next.js 16** (App Router, Server Components)
-- **React 19** with TypeScript
-- **Tailwind CSS 4** for styling
-- **shadcn/ui** for headless components
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Next.js API Routes, MongoDB, Mongoose
+- **Authentication**: NextAuth + Google OAuth
+- **Email**: Resend with React email templates
+- **Validation**: Zod schemas
 
-### Backend
-- **Next.js API Routes** & Server Actions
-- **MongoDB** (Atlas free tier) for flexible schema
-- **Mongoose 8** for ODM and validation
-- **Auth.js** for authentication
-- **Zod** for schema validation
-- **Resend** for email notifications
+## Getting Started
 
-### Infrastructure
-- **Vercel** for deployment (native Next.js support)
-- **MongoDB Atlas** for database hosting
+### Prerequisites
+- Node.js 18+
+- MongoDB (local or MongoDB Atlas)
+- Google OAuth credentials (optional for development)
+- Resend API key (optional for development)
 
-## Project Structure
+### Installation
+
+```bash
+# Clone and install
+git clone <repo>
+cd appointment
+npm install
+
+# Setup environment
+cp .env.example .env.local
+
+# Fill in required variables:
+# MONGODB_URI - MongoDB connection string
+# AUTH_SECRET - Generate with: openssl rand -base64 32
+# AUTH_GOOGLE_ID - From Google Cloud Console (optional)
+# AUTH_GOOGLE_SECRET - From Google Cloud Console (optional)
+# RESEND_API_KEY - From Resend.com (optional)
+# EMAIL_FROM - Sender email address
+
+# Start development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Usage
+
+### For Customers
+1. Visit `/booking/[business-slug]`
+2. Select a service
+3. Pick a date and time
+4. Enter your information
+5. Receive confirmation email
+
+### For Business Owners
+1. Sign in at `/auth/signin` with Google
+2. Access dashboard at `/dashboard`
+3. Manage bookings, services, and staff
+4. Configure business settings
+
+## Project Routes
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Home page |
+| `/booking/[slug]` | Public booking page for a business |
+| `/auth/signin` | Sign in with Google |
+| `/dashboard` | Admin dashboard (protected) |
+| `/dashboard/services` | Manage services |
+| `/dashboard/staff` | Manage staff members |
+| `/dashboard/business` | Business settings |
+
+## Database Models
+
+- **User** - Business owners and customers
+- **Business** - Business profiles with branding
+- **Service** - Services offered with pricing and duration
+- **Staff** - Team members
+- **Schedule** - Staff availability schedules
+- **Booking** - Appointments with status tracking
+- **AuditLog** - Activity logs
+
+## API Endpoints
+
+### Public
+- `GET /api/business/[slug]` - Get business and services
+- `POST /api/bookings` - Create booking
+- `GET /api/availability` - Check available slots
+
+### Protected (Admin)
+- `GET /api/bookings` - List bookings
+- `PATCH /api/bookings/[id]` - Update booking status
+
+### To Be Implemented
+- `/api/services/*` - Service CRUD
+- `/api/staff/*` - Staff CRUD
+- `/api/schedules/*` - Schedule management
+- `PATCH /api/business/[id]` - Update business info
+
+## Environment Variables
 
 ```
-src/
-├── app/
-│   ├── (booking)/          # Public tenant booking pages
-│   ├── api/
-│   │   ├── auth/           # Auth.js routes
-│   │   ├── bookings/       # Booking CRUD endpoints
-│   │   └── availability/   # Slot availability check
-│   ├── layout.tsx          # Root layout
-│   ├── page.tsx            # Homepage
+MONGODB_URI          # MongoDB connection
+AUTH_SECRET          # NextAuth secret (required)
+AUTH_GOOGLE_ID       # Google OAuth ID (optional)
+AUTH_GOOGLE_SECRET   # Google OAuth secret (optional)
+RESEND_API_KEY       # Resend email API key (optional)
+EMAIL_FROM           # Sender email address (optional)
+```
+
+## Project Status
+
+| Feature | Status |
+|---------|--------|
+| Public booking page | ✅ Complete |
+| Email confirmations | ✅ Complete |
+| Admin dashboard UI | ✅ Complete |
+| Authentication | ✅ Complete |
+| Booking management API | ✅ Complete |
+| Services API | ⏳ To Do |
+| Staff API | ⏳ To Do |
+| Schedules API | ⏳ To Do |
+
+## Deployment
+
+### Vercel (Recommended)
+```bash
+# Push to GitHub
+git push origin main
+
+# Deploy to Vercel
+vercel deploy
+
+# Add environment variables in Vercel dashboard
+```
+
+### Other Platforms
+Works with any platform supporting Node.js (Heroku, Railway, etc.)
+
+## Development
+
+```bash
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Run linter
+npm run lint
+```
+
+## Contributing
+
+See [IMPLEMENTATION.md](IMPLEMENTATION.md) for development guidelines and next steps.
+
+## License
+
+MIT
+
 │   └── globals.css         # Tailwind & theme
 ├── components/
 │   └── ui/                 # shadcn/ui components
