@@ -11,13 +11,14 @@ import env from "@/lib/env";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export async function POST(request: Request) {
   try {
     const clientIP = getClientIP(request);
     const body = await request.json().catch(() => ({}));
-    const { email } = signupSchema.parse(body);
+    const { email, password } = signupSchema.parse(body);
     const emailHash = hashEmail(email);
 
     // Rate limit check

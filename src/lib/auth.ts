@@ -7,6 +7,7 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import mongoClientPromise from "@/lib/mongo-client";
 import { connectDb } from "@/lib/db";
 import { User } from "@/lib/models/user";
+import bcrypt from "bcryptjs";
 
 // Lazy-load env vars at request time, not module load time
 // This ensures runtime = "nodejs" is enforced before env access
@@ -38,22 +39,37 @@ if (googleId && googleSecret) {
 // Credentials provider for email OTP sign in
 providers.push(
   Credentials({
-    id: "email",
-    name: "Email",
+    id: "credentials",
+    name: "Email and Password",
     credentials: {
       email: { label: "Email", type: "email", placeholder: "user@example.com" },
+      password: { label: "Password", type: "password" },
     },
     async authorize(credentials) {
-      if (!credentials?.email) {
-        throw new Error("Email is required");
+      if (!credentials?.email || !credentials?.password) {
+        throw new Error("Email and password are required");
       }
 
       await connectDb();
       const user = await User.findOne({ email: credentials.email, emailVerified: true });
       
       if (!user) {
-        throw new Error("No verified account found. Please sign up first.");
+        throw new Error("No account found. Please sign up first.");
       }
+
+      if (!user.password) {
+        throw new Error("Invalid login method. Please use the correct sign-in option.");
+      }
+
+      const passwordMatch = await bcrypt.compare(credentials.password, user.password);
+      
+      if (!passwordMatch) {
+        throw new Error("Invalid password");
+      }
+
+      // Update last login
+      user.lastLogin = new Date();
+      await user.save();
 
       return {
         id: user._id.toString(),
