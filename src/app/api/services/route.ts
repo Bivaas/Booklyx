@@ -1,19 +1,11 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { connectDb } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { Service } from "@/lib/models/service";
-import { Business } from "@/lib/models/business";
-import { z } from "zod";
-
-const serviceSchema = z.object({
-  businessId: z.string(),
-  name: z.string().min(1, "Service name is required"),
-  description: z.string().optional(),
-  duration: z.number().int().min(15, "Duration must be at least 15 minutes"),
-  price: z.number().int().min(0, "Price must be non-negative"),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format").optional(),
-  isActive: z.boolean().optional(),
-});
+import { Business, BusinessStatus } from "@/lib/models/business";
+import { serviceSchema } from "@/lib/schemas/business";
+import { checkApiRateLimit, getClientIP } from "@/lib/rate-limit";
 
 // GET /api/services - List all services for authenticated user's business
 export async function GET(request: Request) {
@@ -49,7 +41,11 @@ export async function GET(request: Request) {
       })),
     });
   } catch (error) {
-    console.error("Services fetch error:", error);
+    const isDev = process.env.NODE_ENV === "development";
+    if (isDev) {
+      console.error("Services fetch error:", error);
+    }
+    
     return NextResponse.json(
       { error: "Failed to fetch services" },
       { status: 500 }
@@ -65,8 +61,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const clientIP = getClientIP(request);
+    if (!checkApiRateLimit(clientIP)) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
-    const data = serviceSchema.parse(body);
+    
+    // Parse with extended schema that includes businessId
+    const extendedSchema = serviceSchema.extend({
+      businessId: z.string().min(1),
+    });
+    const data = extendedSchema.parse(body);
 
     await connectDb();
 
@@ -83,6 +92,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Only approved businesses can add services
+    if (business.status !== BusinessStatus.APPROVED) {
+      return NextResponse.json(
+        { error: "Business must be approved before adding services" },
+        { status: 403 }
+      );
+    }
+
     // Create service
     const service = new Service({
       businessId: data.businessId,
@@ -90,8 +107,8 @@ export async function POST(request: Request) {
       description: data.description || "",
       duration: data.duration,
       price: data.price,
-      color: data.color || "#60a5fa",
-      isActive: data.isActive ?? true,
+      color: data.color,
+      isActive: true,
     });
 
     await service.save();

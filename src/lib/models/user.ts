@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 export enum Role {
+  ADMIN = "admin",
   OWNER = "owner",
   STAFF = "staff",
   CUSTOMER = "customer",
@@ -18,12 +19,16 @@ const UserSchema = new Schema(
     businessId: { type: Schema.Types.ObjectId, ref: "Business" },
     isActive: { type: Boolean, default: true },
     lastLogin: { type: Date },
+    // Email OTP verification fields
+    emailVerified: { type: Boolean, default: false },
+    verifiedAt: { type: Date },
   },
   { timestamps: true }
 );
 
 UserSchema.index({ email: 1 });
 UserSchema.index({ businessId: 1, role: 1 });
+UserSchema.index({ emailVerified: 1 });
 
 export const User =
   mongoose.models.User || mongoose.model("User", UserSchema);

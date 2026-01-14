@@ -11,9 +11,7 @@ const envSchema = z.object({
   AUTH_GOOGLE_SECRET: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
-  TWILIO_ACCOUNT_SID: z.string().optional(),
-  TWILIO_AUTH_TOKEN: z.string().optional(),
-  TWILIO_FROM_NUMBER: z.string().optional(),
+  ADMIN_EMAILS: z.string().optional(), // Comma-separated list of admin emails
 });
 
 const env = envSchema.parse({
@@ -26,9 +24,7 @@ const env = envSchema.parse({
   AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM,
-  TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
-  TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
-  TWILIO_FROM_NUMBER: process.env.TWILIO_FROM_NUMBER,
+  ADMIN_EMAILS: process.env.ADMIN_EMAILS,
 });
 
 export default env;

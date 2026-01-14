@@ -7,19 +7,72 @@ import { Business } from "@/lib/models/business";
 import { bookingRequestSchema } from "@/lib/schemas/booking";
 import { sendBookingConfirmation } from "@/lib/notifications";
 
+import { NextResponse } from "next/server";
+import { connectDb } from "@/lib/db";
+import { Booking, BookingStatus } from "@/lib/models/booking";
+import { Service } from "@/lib/models/service";
+import { Staff } from "@/lib/models/staff";
+import { Business, BusinessStatus } from "@/lib/models/business";
+import { bookingRequestSchema } from "@/lib/schemas/booking";
+import { sendBookingConfirmation } from "@/lib/notifications";
+import { hashEmail } from "@/lib/crypto";
+import { checkBookingRateLimit, getClientIP } from "@/lib/rate-limit";
+import { checkIPBookingLimit } from "@/lib/ip-heuristics";
+import { validateUserForBooking } from "@/lib/booking-verification";
+
 export async function POST(request: Request) {
   try {
+    const clientIP = getClientIP(request);
+    
+    // Rate limiting: 10 bookings per minute per IP
+    if (!checkBookingRateLimit(clientIP)) {
+      return NextResponse.json(
+        { error: "Too many booking requests. Please try again later." },
+        { status: 429 }
+      );
+    }
+
+    // IP-based secondary limit check (burst protection)
+    if (!checkIPBookingLimit(clientIP)) {
+      return NextResponse.json(
+        { error: "Booking limit exceeded for your IP address" },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const data = bookingRequestSchema.parse(body);
 
     await connectDb();
 
-    // Verify business exists
+    // Comprehensive user verification check
+    // - emailVerified field
+    // - business approved
+    // - daily limits
+    const validation = await validateUserForBooking(
+      data.customerEmail,
+      data.businessId
+    );
+    if (!validation.valid) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 403 }
+      );
+    }
+
+    // Verify business exists and is APPROVED
     const business = await Business.findById(data.businessId);
     if (!business) {
       return NextResponse.json(
         { error: "Business not found" },
         { status: 404 }
+      );
+    }
+
+    if (business.status !== BusinessStatus.APPROVED) {
+      return NextResponse.json(
+        { error: "This business is not accepting bookings at the moment" },
+        { status: 403 }
       );
     }
 
@@ -36,7 +89,7 @@ export async function POST(request: Request) {
     const startTime = new Date(data.startTime);
     const endTime = new Date(startTime.getTime() + service.duration * 60000);
 
-    // Check for conflicts
+    // Check for conflicts (prevent race conditions)
     const existingBooking = await Booking.findOne({
       businessId: data.businessId,
       staffId: data.staffId || null,
@@ -71,15 +124,20 @@ export async function POST(request: Request) {
 
     await booking.save();
 
-    // Send confirmation email
-    await sendBookingConfirmation(
+    // Send confirmation email (async, don't block response)
+    sendBookingConfirmation(
       data.customerEmail,
       data.customerName,
       business.name,
       service.name,
       startTime,
       booking._id.toString()
-    );
+    ).catch((error) => {
+      // Non-critical error; booking still created
+      if (process.env.NODE_ENV === "development") {
+        console.error("Booking confirmation email failed - non-critical");
+      }
+    });
 
     return NextResponse.json(
       {
@@ -93,10 +151,15 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    console.error("Booking creation error:", error);
+  } catch (error: any) {
+    // Don't log full error details in production (security)
+    const isDev = process.env.NODE_ENV === "development";
+    if (isDev) {
+      console.error("Booking creation error context only");
+    }
+    
     return NextResponse.json(
-      { error: "Failed to create booking" },
+      { error: error?.message || "Failed to create booking" },
       { status: 500 }
     );
   }
