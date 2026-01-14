@@ -22,8 +22,11 @@ if (env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET) {
 
 // Provide a default provider stub for development if no providers configured
 if (providers.length === 0) {
+  const message = "No authentication providers configured. Set AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET.";
   if (process.env.NODE_ENV === "development") {
-    console.warn("Warning: No authentication providers configured. Set AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET.");
+    console.warn(message);
+  } else {
+    throw new Error(message);
   }
 }
 
