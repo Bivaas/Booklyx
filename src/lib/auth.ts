@@ -7,6 +7,8 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import mongoClientPromise from "@/lib/mongo-client";
 import { connectDb } from "@/lib/db";
 import { User } from "@/lib/models/user";
+import { trackDeviceLogin } from "@/lib/device-tracker";
+import { getClientIP } from "@/lib/rate-limit";
 import bcrypt from "bcryptjs";
 
 // Lazy-load env vars at request time, not module load time
@@ -45,7 +47,7 @@ providers.push(
       email: { label: "Email", type: "email", placeholder: "user@example.com" },
       password: { label: "Password", type: "password" },
     },
-    async authorize(credentials) {
+    async authorize(credentials, req) {
       if (!credentials?.email || !credentials?.password) {
         throw new Error("Email and password are required");
       }
@@ -66,6 +68,21 @@ providers.push(
       if (!passwordMatch) {
         throw new Error("Invalid password");
       }
+
+      // Check if session needs to be invalidated due to password change
+      // Sessions older than password change time are invalid
+      if (user.passwordChangedAt) {
+        const sessionCreatedAt = Math.floor(Date.now() / 1000);
+        const passwordChangedTime = Math.floor(user.passwordChangedAt.getTime() / 1000);
+        if (passwordChangedTime > sessionCreatedAt) {
+          throw new Error("Your password was recently changed. Please sign in again.");
+        }
+      }
+
+      // Track device login
+      const clientIP = getClientIP(req);
+      const userAgent = req.headers.get("user-agent") || "";
+      await trackDeviceLogin(user._id.toString(), clientIP, userAgent);
 
       // Update last login
       user.lastLogin = new Date();
@@ -105,6 +122,13 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id;
+        
+        // Fetch user to get businessId
+        await connectDb();
+        const dbUser = await User.findById(token.id);
+        if (dbUser?.businessId) {
+          (session.user as any).businessId = dbUser.businessId.toString();
+        }
       }
       return session;
     },
