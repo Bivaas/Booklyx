@@ -10,6 +10,21 @@ import { hashEmail } from "@/lib/crypto";
 import { checkBookingRateLimit, getClientIP } from "@/lib/rate-limit";
 import { checkIPBookingLimit } from "@/lib/ip-heuristics";
 import { validateUserForBooking } from "@/lib/booking-verification";
+import { auth } from "@/lib/auth";
+
+// Add CORS and security headers for API response
+const apiHeaders = {
+  "Access-Control-Allow-Origin": process.env.NEXTAUTH_URL || "https://booklyx.vercel.app",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "X-XSS-Protection": "1; mode=block",
+};
+
+export async function OPTIONS(request: Request) {
+  return NextResponse.json({}, { headers: apiHeaders });
+}
 
 export async function POST(request: Request) {
   try {
@@ -158,13 +173,22 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    // Check authentication
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized - Please sign in" },
+        { status: 401, headers: apiHeaders }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get("businessId");
 
     if (!businessId) {
       return NextResponse.json(
-        { error: "businessId is required" },
-        { status: 400 }
+        { error: "businessId is required", bookings: [] },
+        { status: 200, headers: apiHeaders }
       );
     }
 
@@ -176,12 +200,12 @@ export async function GET(request: Request) {
       .sort({ startTime: -1 })
       .limit(50);
 
-    return NextResponse.json({ bookings });
+    return NextResponse.json({ bookings }, { headers: apiHeaders });
   } catch (error) {
     console.error("Fetch bookings error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch bookings" },
-      { status: 500 }
+      { error: "Failed to fetch bookings", bookings: [] },
+      { status: 500, headers: apiHeaders }
     );
   }
 }

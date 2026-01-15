@@ -31,13 +31,24 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchBookings();
-  }, [filter]);
+  }, [filter, session]);
 
   const fetchBookings = async () => {
     try {
       setLoading(true);
       setError(null);
-      const query = filter !== "all" ? `?status=${filter}` : "";
+      
+      // Get businessId from session
+      const businessId = (session?.user as any)?.businessId;
+      
+      if (!businessId) {
+        setBookings([]);
+        setError("No business found. Please create a business in settings.");
+        setLoading(false);
+        return;
+      }
+
+      const query = filter !== "all" ? `?businessId=${businessId}&status=${filter}` : `?businessId=${businessId}`;
       const response = await fetch(`/api/bookings${query}`);
 
       if (!response.ok) {
