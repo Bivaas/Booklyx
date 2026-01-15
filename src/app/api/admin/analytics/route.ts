@@ -3,6 +3,9 @@ import { connectDb } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { Business, BusinessStatus } from "@/lib/models/business";
 import { Booking, BookingStatus } from "@/lib/models/booking";
+import { User } from "@/lib/models/user";
+import { Staff } from "@/lib/models/staff";
+import { Service } from "@/lib/models/service";
 
 /**
  * GET /api/admin/analytics
@@ -26,99 +29,25 @@ export async function GET(request: Request) {
 
     await connectDb();
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    // Aggregation 1: Business counts by status
-    const businessStats = await Business.aggregate([
-      {
-        $group: {
-          _id: "$status",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-
-    // Aggregation 2: Bookings today
-    const bookingsToday = await Booking.countDocuments({
-      startTime: { $gte: today, $lt: tomorrow },
-    });
-
-    // Aggregation 3: Bookings per business (top 10)
-    const bookingsPerBusiness = await Booking.aggregate([
-      {
-        $match: {
-          status: { $ne: BookingStatus.CANCELLED },
-        },
-      },
-      {
-        $group: {
-          _id: "$businessId",
-          count: { $sum: 1 },
-          lastBooking: { $max: "$startTime" },
-        },
-      },
-      {
-        $lookup: {
-          from: "businesses",
-          localField: "_id",
-          foreignField: "_id",
-          as: "business",
-        },
-      },
-      {
-        $unwind: "$business",
-      },
-      {
-        $project: {
-          businessId: "$_id",
-          businessName: "$business.name",
-          businessStatus: "$business.status",
-          bookingCount: "$count",
-          lastBooking: 1,
-        },
-      },
-      {
-        $sort: { bookingCount: -1 },
-      },
-      {
-        $limit: 10,
-      },
-    ]);
-
-    // Aggregation 4: Recent activity
-    const recentBookings = await Booking.find()
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .populate("businessId", "name")
-      .populate("serviceId", "name")
-      .select("customerName customerEmail startTime status createdAt");
-
-    // Format business stats
-    const businessStatsByStatus: Record<string, number> = {
-      pending: 0,
-      approved: 0,
-      suspended: 0,
-    };
-
-    businessStats.forEach((stat) => {
-      businessStatsByStatus[stat._id] = stat.count;
-    });
+    // Get all counts we need
+    const totalUsers = await User.countDocuments();
+    const totalBookings = await Booking.countDocuments();
+    const totalStaff = await Staff.countDocuments();
+    const totalServices = await Service.countDocuments();
+    const totalBusinesses = await Business.countDocuments();
+    const approvedBusinesses = await Business.countDocuments({ status: "approved" });
+    const pendingBusinesses = await Business.countDocuments({ status: "pending" });
+    const suspendedBusinesses = await Business.countDocuments({ status: "suspended" });
 
     return NextResponse.json({
-      businesses: {
-        total: Object.values(businessStatsByStatus).reduce((a, b) => a + b, 0),
-        pending: businessStatsByStatus.pending,
-        approved: businessStatsByStatus.approved,
-        suspended: businessStatsByStatus.suspended,
-      },
-      bookings: {
-        today: bookingsToday,
-        perBusiness: bookingsPerBusiness,
-      },
-      recentActivity: recentBookings,
+      totalUsers,
+      totalBusinesses,
+      approvedBusinesses,
+      pendingBusinesses,
+      suspendedBusinesses,
+      totalBookings,
+      totalStaff,
+      totalServices,
     });
   } catch (error) {
     const isDev = process.env.NODE_ENV === "development";

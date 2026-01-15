@@ -116,31 +116,6 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   callbacks: {
-    async signIn({ user, account }) {
-      // For Google OAuth users, ensure they exist in database and set admin role if in ADMIN_EMAILS
-      if (account?.provider === "google" && user?.email) {
-        await connectDb();
-        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim()).filter(Boolean);
-        const isAdmin = adminEmails.includes(user.email);
-        
-        let dbUser = await User.findOne({ email: user.email });
-        if (!dbUser) {
-          // Create new user from Google signup
-          dbUser = new User({
-            email: user.email,
-            name: user.name || user.email.split("@")[0],
-            emailVerified: true,
-            role: isAdmin ? "admin" : "customer",
-          });
-          await dbUser.save();
-        } else if (isAdmin && dbUser.role !== "admin") {
-          // Update existing user to admin if they're in ADMIN_EMAILS
-          dbUser.role = "admin";
-          await dbUser.save();
-        }
-      }
-      return true;
-    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
