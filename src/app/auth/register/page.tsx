@@ -110,10 +110,10 @@ export default function RegisterPage() {
         {success && (
           <div className="mx-8 mb-4 p-4 bg-green-50/5 border border-green-500/30 rounded-lg flex items-start space-x-3 text-sm">
             <CheckCircle className="h-5 w-5 text-green-300 flex-shrink-0 mt-0.5" />
-            <div className=\"flex-1\">
-              <p className=\"text-green-100\">{success}</p>
+            <div className="flex-1">
+              <p className="text-green-100">{success}</p>
               {testMode && (
-                <p className=\"text-green-200/80 mt-1 text-xs\">⚠️ Test Mode Active - Use OTP: 123456</p>
+                <p className="text-green-200/80 mt-1 text-xs">⚠️ Test Mode Active - Use OTP: 123456</p>
               )}
             </div>
           </div>
