@@ -57,7 +57,10 @@ export default function DashboardPage() {
       setBusinessId(bId);
 
       // 2. Get Bookings
-      const bookRes = await fetch(`/api/bookings?businessId=${bId}`);
+      let url = `/api/bookings?businessId=${bId}`;
+      if (filter !== "all") url += `&status=${filter}`;
+      const bookRes = await fetch(url);
+
       if (!bookRes.ok) throw new Error("Failed to fetch bookings");
       const bookData = await bookRes.json();
       setBookings(bookData.bookings || []);
@@ -71,7 +74,10 @@ export default function DashboardPage() {
   const fetchUserBookings = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/bookings"); // No params = My Bookings
+      let url = "/api/bookings";
+      if (filter !== "all") url += `?status=${filter}`;
+      
+      const res = await fetch(url); // No params = My Bookings
       if (!res.ok) throw new Error("Failed to fetch your bookings");
       const data = await res.json();
       setBookings(data.bookings || []);
@@ -82,21 +88,6 @@ export default function DashboardPage() {
     }
   };
   
-  const handleStatusUpdate = async (bookingId: string, newStatus: string) => {
-    // Determine update URL based on context or just use generic booking update
-    // Assuming backend handles auth check ownership
-    // ...
-  };
-
-      
-      if (!businessId) {
-        setBookings([]);
-        setLoading(false);
-        return;
-      }
-
-      const query = filter !== "all" ? `?businessId=${businessId}&status=${filter}` : `?businessId=${businessId}`;
-      const response = await fetch(`/api/bookings${query}`);
 
   const handleStatusChange = async (bookingId: string, newStatus: string) => {
     try {

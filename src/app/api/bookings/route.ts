@@ -204,6 +204,13 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get("businessId");
+    const status = searchParams.get("status");
+    
+    // Build query filter
+    const query: any = {};
+    if (status && status !== "all") {
+      query.status = status;
+    }
 
     await connectDb();
 
@@ -211,7 +218,9 @@ export async function GET(request: Request) {
     if (businessId) {
        // TODO: Add ownership check here for security
        // For now, focusing on the functionality split
-       const bookings = await Booking.find({ businessId })
+       query.businessId = businessId;
+       
+       const bookings = await Booking.find(query)
         .populate("serviceId", "name duration")
         .populate("staffId", "name")
         .sort({ startTime: -1 })
@@ -221,7 +230,9 @@ export async function GET(request: Request) {
 
     // Fallback: If no businessId, return USER's bookings (My Bookings)
     // Secure this to ensure users only see their own
-    const bookings = await Booking.find({ customerEmail: session.user.email })
+    query.customerEmail = session.user.email;
+    
+    const bookings = await Booking.find(query)
       .populate("businessId", "name") // Populate business info for the user
       .populate("serviceId", "name duration")
       .sort({ startTime: -1 })
