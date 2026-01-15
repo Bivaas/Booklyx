@@ -127,14 +127,14 @@ export async function POST(request: Request) {
 
     await business.save();
 
-    // Update user role to OWNER and link business
+    // Store business ID on user for reference (do NOT escalate to OWNER yet)
+    // User becomes OWNER only after admin approval
     // @ts-ignore
     await import("@/lib/models/user").then(({ User }) => 
       User.findOneAndUpdate(
         { email: session.user.email },
         { 
           $set: { 
-            role: "owner",
             businessId: business._id 
           } 
         }

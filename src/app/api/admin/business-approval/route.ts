@@ -3,7 +3,7 @@ import { z } from "zod";
 import { connectDb } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { Business, BusinessStatus } from "@/lib/models/business";
-import { Role } from "@/lib/models/user";
+import { User, Role } from "@/lib/models/user";
 import { sendBusinessApprovalEmail } from "@/lib/notifications";
 
 const approvalSchema = z.object({
@@ -28,7 +28,6 @@ export async function POST(request: Request) {
     await connectDb();
     
     // Strict Role Check
-    const { User, Role } = await import("@/lib/models/user");
     const adminUser = await User.findOne({ email: session.user.email });
 
     if (!adminUser || adminUser.role !== Role.ADMIN) {
@@ -54,6 +53,15 @@ export async function POST(request: Request) {
       business.approvedBy = session.user.id || session.user.email;
       business.suspendedAt = undefined;
       business.suspendedReason = undefined;
+
+      // Escalate business owner to OWNER role
+      if (business.ownerId) {
+        await User.findByIdAndUpdate(
+          business.ownerId,
+          { role: Role.OWNER },
+          { new: true }
+        );
+      }
     } else if (action === "suspend") {
       business.status = BusinessStatus.SUSPENDED;
       business.suspendedAt = new Date();

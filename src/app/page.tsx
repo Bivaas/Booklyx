@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Calendar, Users, Bell, ArrowRight } from "lucide-react";
+import { Calendar, Users, Bell, ArrowRight, LogOut } from "lucide-react";
 
 interface Business {
   id: string;
@@ -19,6 +20,7 @@ interface Business {
 }
 
 export default function Home() {
+  const { data: session, status } = useSession();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,12 +54,34 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link href="/auth/signin">
-              <Button variant="ghost">Sign In</Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button>Dashboard</Button>
-            </Link>
+            {status === "loading" ? (
+              <div className="w-8 h-8 border-2 border-border border-t-primary rounded-full animate-spin" />
+            ) : session?.user ? (
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-foreground">{session.user.name || session.user.email}</p>
+                  <p className="text-xs text-muted-foreground">{session.user.email}</p>
+                </div>
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="sm">Dashboard</Button>
+                </Link>
+                <Link href="/auth/signout">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <>
+                <Link href="/auth/signin">
+                  <Button variant="ghost">Sign In</Button>
+                </Link>
+                <Link href="/auth/register">
+                  <Button>Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
