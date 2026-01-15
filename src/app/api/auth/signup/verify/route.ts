@@ -56,6 +56,13 @@ export async function POST(request: Request) {
       otpRecord.attempts += 1;
       await otpRecord.save();
 
+      // RISK SCORING: Increment risk on failed OTP attempt
+      await User.findOneAndUpdate(
+        { email },
+        { $inc: { riskScore: 5 } }, // +5 points for failed attempt
+        { upsert: false }
+      );
+
       const attemptsLeft = 3 - otpRecord.attempts;
       return NextResponse.json(
         {
@@ -89,12 +96,17 @@ export async function POST(request: Request) {
         emailVerified: true,
         verifiedAt: now,
         role: userRole,
+        accountCreatedAt: now, // ACCOUNT WARM-UP: Track creation time
+        riskScore: 0, // RISK SCORING: Start at 0
+        emailSendingDisabled: false,
+        failedOTPAttempts: 0,
       });
     } else {
       user.password = hashedPassword;
       user.emailVerified = true;
       user.verifiedAt = now;
       user.role = userRole;
+      user.accountCreatedAt = now; // ACCOUNT WARM-UP: Update creation time
       await user.save();
     }
 

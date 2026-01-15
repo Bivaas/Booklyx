@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { AlertCircle, CheckCircle } from "lucide-react";
 
 export default function RegisterPage() {
@@ -16,7 +17,8 @@ export default function RegisterPage() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");  const [testMode, setTestMode] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [testMode, setTestMode] = useState(false);
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -33,7 +35,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, honeypot: "" }),
       });
 
       const data = await res.json();
@@ -87,13 +89,16 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4">
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle />
+      </div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(99,102,241,0.08),transparent_25%),radial-gradient(circle_at_80%_0%,rgba(56,189,248,0.08),transparent_25%)]" aria-hidden />
-      <Card className="relative w-full max-w-lg border border-slate-800/60 bg-slate-900/70 backdrop-blur-md shadow-2xl shadow-slate-900/40">
+      <Card className="relative w-full max-w-lg border border-border bg-card/70 backdrop-blur-md shadow-2xl">
         <div className="p-8 pb-6">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Booklyx Access</p>
-          <h1 className="text-3xl font-semibold text-white mt-2">Create Account</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Booklyx Access</p>
+          <h1 className="text-3xl font-semibold text-foreground mt-2">Create Account</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             {step === "signup"
               ? "Enter your email to get started"
               : "Enter the OTP from your email"}
@@ -101,19 +106,19 @@ export default function RegisterPage() {
         </div>
 
         {error && (
-          <div className="mx-8 mb-4 p-4 bg-red-50/5 border border-red-500/30 rounded-lg flex items-start space-x-3 text-sm">
-            <AlertCircle className="h-5 w-5 text-red-300 flex-shrink-0 mt-0.5" />
-            <p className="text-red-100">{error}</p>
+          <div className="mx-8 mb-4 p-4 bg-destructive/10 border border-destructive/40 rounded-lg flex items-start space-x-3 text-sm">
+            <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+            <p className="text-destructive">{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="mx-8 mb-4 p-4 bg-green-50/5 border border-green-500/30 rounded-lg flex items-start space-x-3 text-sm">
-            <CheckCircle className="h-5 w-5 text-green-300 flex-shrink-0 mt-0.5" />
+          <div className="mx-8 mb-4 p-4 bg-green-500/10 border border-green-500/40 rounded-lg flex items-start space-x-3 text-sm">
+            <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-green-100">{success}</p>
+              <p className="text-green-700 dark:text-green-300">{success}</p>
               {testMode && (
-                <p className="text-green-200/80 mt-1 text-xs">⚠️ Test Mode Active - Use OTP: 123456</p>
+                <p className="text-green-600 dark:text-green-400 mt-1 text-xs">⚠️ Test Mode Active - Use OTP: 123456</p>
               )}
             </div>
           </div>
@@ -123,7 +128,7 @@ export default function RegisterPage() {
           {step === "signup" ? (
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-300">
+                <Label htmlFor="email" className="text-foreground">
                   Email Address
                 </Label>
                 <Input
@@ -134,12 +139,12 @@ export default function RegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
-                  className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-300">
+                <Label htmlFor="password" className="text-foreground">
                   Password
                 </Label>
                 <Input
@@ -151,9 +156,18 @@ export default function RegisterPage() {
                   required
                   minLength={8}
                   disabled={loading}
-                  className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
+
+              {/* Honeypot field - hidden from users, only bots fill it */}
+              <input
+                type="text"
+                name="honeypot"
+                style={{ display: "none" }}
+                tabIndex={-1}
+                autoComplete="off"
+              />
 
               <Button
                 type="submit"
@@ -163,12 +177,12 @@ export default function RegisterPage() {
                 {loading ? "Sending..." : "Send OTP"}
               </Button>
 
-              <div className="text-center text-sm text-slate-400">
+              <div className="text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
                 <button
                   type="button"
                   onClick={() => router.push("/auth/signin")}
-                  className="text-cyan-300 hover:text-cyan-200 font-semibold"
+                  className="text-primary hover:text-primary/80 font-semibold"
                 >
                   Sign in
                 </button>
@@ -177,7 +191,7 @@ export default function RegisterPage() {
           ) : (
             <form onSubmit={handleVerify} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="otp" className="text-slate-300">
+                <Label htmlFor="otp" className="text-foreground">
                   Verification Code
                 </Label>
                 <Input
@@ -194,7 +208,7 @@ export default function RegisterPage() {
                   required
                   disabled={loading}
                   autoFocus
-                  className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 text-center text-2xl tracking-widest font-mono"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground text-center text-2xl tracking-widest font-mono"
                 />
               </div>
 
@@ -216,7 +230,7 @@ export default function RegisterPage() {
                   setError("");
                 }}
                 disabled={loading}
-                className="w-full border-slate-700 text-slate-300 hover:bg-slate-800"
+                className="w-full"
               >
                 Back
               </Button>

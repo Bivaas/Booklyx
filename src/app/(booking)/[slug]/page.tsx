@@ -191,10 +191,10 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-background p-4 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading booking page...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading booking page...</p>
         </div>
       </div>
     );
@@ -202,13 +202,13 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
 
   if (!business) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 flex items-center justify-center">
-        <Card className="p-8 max-w-2xl">
+      <div className="min-h-screen bg-background p-4 flex items-center justify-center">
+        <Card className="p-8 max-w-2xl border-destructive/50">
           <div className="flex items-start space-x-3">
-            <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" />
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Error</h2>
-              <p className="text-gray-600 mt-1">{error || "Business not found"}</p>
+              <h2 className="text-lg font-bold text-foreground">Error</h2>
+              <p className="text-muted-foreground mt-1">{error || "Business not found"}</p>
             </div>
           </div>
         </Card>
@@ -217,20 +217,20 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto">
         {/* Business Header */}
-        <Card className="mb-6 p-6" style={{ borderTopColor: business.color, borderTopWidth: "4px" }}>
+        <Card className="mb-6 p-6 border-t-4" style={{ borderTopColor: business.color }}>
           <div className="flex items-start justify-between">
             <div>
               {business.logo && (
                 <img src={business.logo} alt={business.name} className="h-12 mb-3" />
               )}
-              <h1 className="text-3xl font-bold text-gray-900">{business.name}</h1>
+              <h1 className="text-3xl font-bold text-foreground">{business.name}</h1>
               {business.description && (
-                <p className="text-gray-600 mt-2">{business.description}</p>
+                <p className="text-muted-foreground mt-2">{business.description}</p>
               )}
-              <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-600">
+              <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
                 {business.phone && <span>📞 {business.phone}</span>}
                 {business.address && <span>📍 {business.address}</span>}
               </div>
@@ -242,21 +242,21 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
           {/* Booking Form */}
           <div className="lg:col-span-2">
             <Card className="p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Book an Appointment</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-6">Book an Appointment</h2>
 
               {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
-                  <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-                  <p className="text-red-700">{error}</p>
+                <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-lg flex items-start space-x-3">
+                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                  <p className="text-destructive font-medium">{error}</p>
                 </div>
               )}
 
               {success && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start space-x-3">
+                <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg flex items-start space-x-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-green-700 font-semibold">✓ Appointment booked successfully!</p>
-                    <p className="text-green-600 text-sm mt-1">Check your email for confirmation details.</p>
+                    <p className="text-green-600 dark:text-green-400 font-semibold">✓ Appointment booked successfully!</p>
+                    <p className="text-green-600/80 dark:text-green-400/80 text-sm mt-1">Check your email for confirmation details.</p>
                   </div>
                 </div>
               )}
@@ -264,12 +264,12 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Service Selection */}
                 <div>
-                  <Label htmlFor="service" className="text-base font-semibold">
+                  <Label htmlFor="service" className="text-base font-semibold text-foreground">
                     Select Service *
                   </Label>
                   <select
                     {...register("serviceId", { required: "Please select a service" })}
-                    className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="mt-2 w-full px-4 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-input text-foreground"
                   >
                     <option value="">-- Choose a service --</option>
                     {services.map((service) => (
@@ -279,13 +279,13 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                     ))}
                   </select>
                   {errors.serviceId && (
-                    <p className="text-red-500 text-sm mt-1">{errors.serviceId.message}</p>
+                    <p className="text-destructive text-sm mt-1">{errors.serviceId.message}</p>
                   )}
                 </div>
 
                 {selectedService && (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
+                  <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                    <p className="text-sm text-foreground">
                       <strong>{selectedService.name}</strong> - {selectedService.duration} minutes
                       {selectedService.description && ` • ${selectedService.description}`}
                     </p>
@@ -294,7 +294,7 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
 
                 {/* Date Selection */}
                 <div>
-                  <Label htmlFor="date" className="text-base font-semibold">
+                  <Label htmlFor="date" className="text-base font-semibold text-foreground">
                     Select Date *
                   </Label>
                   <input
@@ -302,17 +302,17 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                     {...register("selectedDate", { required: "Please select a date" })}
                     min={tomorrow.toISOString().split("T")[0]}
                     max={maxDate.toISOString().split("T")[0]}
-                    className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="mt-2 w-full px-4 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-input text-foreground"
                   />
                   {errors.selectedDate && (
-                    <p className="text-red-500 text-sm mt-1">{errors.selectedDate.message}</p>
+                    <p className="text-destructive text-sm mt-1">{errors.selectedDate.message}</p>
                   )}
                 </div>
 
                 {/* Time Selection */}
                 {selectedDate && timeSlots.length > 0 && (
                   <div>
-                    <Label className="text-base font-semibold">Select Time *</Label>
+                    <Label className="text-base font-semibold text-foreground">Select Time *</Label>
                     <div className="mt-2 grid grid-cols-4 gap-2">
                       {timeSlots
                         .filter((slot) => slot.available)
@@ -335,8 +335,8 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                                 className="sr-only"
                               />
                               <span
-                                className="w-full py-2 px-3 text-center text-sm font-medium rounded-lg border-2 border-gray-200 hover:border-indigo-500 cursor-pointer
-                                has-[:checked]:bg-indigo-600 has-[:checked]:text-white has-[:checked]:border-indigo-600 transition"
+                                className="w-full py-2 px-3 text-center text-sm font-medium rounded-lg border-2 border-input bg-background text-foreground hover:border-primary cursor-pointer
+                                has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary transition"
                               >
                                 {timeStr}
                               </span>
@@ -345,24 +345,24 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                         })}
                     </div>
                     {errors.selectedTime && (
-                      <p className="text-red-500 text-sm mt-1">{errors.selectedTime.message}</p>
+                      <p className="text-destructive text-sm mt-1">{errors.selectedTime.message}</p>
                     )}
                   </div>
                 )}
 
                 {selectedDate && timeSlots.length === 0 && selectedServiceId && (
-                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-sm text-yellow-800">No available time slots for this date. Please select another date.</p>
+                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400">No available time slots for this date. Please select another date.</p>
                   </div>
                 )}
 
                 {/* Customer Information */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Information</h3>
+                <div className="border-t border-border pt-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Your Information</h3>
 
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="name" className="text-base font-semibold">
+                      <Label htmlFor="name" className="text-base font-semibold text-foreground">
                         Full Name *
                       </Label>
                       <Input
@@ -371,12 +371,12 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                         className="mt-2"
                       />
                       {errors.name && (
-                        <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.name.message}</p>
                       )}
                     </div>
 
                     <div>
-                      <Label htmlFor="email" className="text-base font-semibold">
+                      <Label htmlFor="email" className="text-base font-semibold text-foreground">
                         Email *
                       </Label>
                       <Input
@@ -392,12 +392,12 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                         className="mt-2"
                       />
                       {errors.email && (
-                        <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.email.message}</p>
                       )}
                     </div>
 
                     <div>
-                      <Label htmlFor="phone" className="text-base font-semibold">
+                      <Label htmlFor="phone" className="text-base font-semibold text-foreground">
                         Phone Number *
                       </Label>
                       <Input
@@ -413,19 +413,19 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                         className="mt-2"
                       />
                       {errors.phone && (
-                        <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.phone.message}</p>
                       )}
                     </div>
 
                     <div>
-                      <Label htmlFor="notes" className="text-base font-semibold">
+                      <Label htmlFor="notes" className="text-base font-semibold text-foreground">
                         Notes or Special Requests (Optional)
                       </Label>
                       <textarea
                         {...register("notes")}
                         rows={3}
                         placeholder="Any special requests or additional information..."
-                        className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        className="mt-2 w-full px-3 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-input text-foreground placeholder:text-muted-foreground"
                       />
                     </div>
                   </div>
@@ -434,7 +434,7 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                 <Button
                   type="submit"
                   disabled={submitting || !selectedServiceId || !selectedDate}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 text-lg font-semibold"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-lg font-semibold shadow-md"
                 >
                   {submitting ? "Booking..." : "Confirm Appointment"}
                 </Button>
@@ -446,31 +446,31 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
           {selectedService && (
             <div>
               <Card className="p-6 sticky top-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Summary</h3>
+                <h3 className="text-lg font-bold text-foreground mb-4">Summary</h3>
 
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-600">Service</p>
-                    <p className="text-base font-semibold text-gray-900">{selectedService.name}</p>
+                    <p className="text-sm text-muted-foreground">Service</p>
+                    <p className="text-base font-semibold text-foreground">{selectedService.name}</p>
                   </div>
 
-                  <div className="flex items-center space-x-2 text-gray-600">
+                  <div className="flex items-center space-x-2 text-muted-foreground">
                     <Clock className="h-4 w-4" />
                     <span className="text-sm">{selectedService.duration} minutes</span>
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <DollarSign className="h-4 w-4 text-gray-600" />
-                    <span className="text-2xl font-bold text-gray-900">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-2xl font-bold text-foreground">
                       ${(selectedService.price / 100).toFixed(2)}
                     </span>
                   </div>
 
                   {selectedDate && (
                     <>
-                      <div className="border-t pt-4">
-                        <p className="text-sm text-gray-600">Date</p>
-                        <p className="text-base font-semibold text-gray-900">
+                      <div className="border-t border-border pt-4">
+                        <p className="text-sm text-muted-foreground">Date</p>
+                        <p className="text-base font-semibold text-foreground">
                           {new Date(selectedDate).toLocaleDateString("en-US", {
                             weekday: "long",
                             year: "numeric",
@@ -482,8 +482,8 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                     </>
                   )}
 
-                  <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-xs text-blue-800">
+                  <div className="mt-6 p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                    <p className="text-xs text-foreground">
                       💡 A confirmation email will be sent to you with all the details.
                     </p>
                   </div>

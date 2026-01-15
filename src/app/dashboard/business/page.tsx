@@ -145,38 +145,38 @@ export default function BusinessPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading business settings...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Loading business settings...</p>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Business Settings</h1>
-        <p className="text-gray-600 mt-2">Manage your business information</p>
+    <div className="w-full">
+      <div className="mb-8 px-4 md:px-6 lg:px-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Business Settings</h1>
+        <p className="text-muted-foreground mt-2">Manage your business information</p>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
-          <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-          <p className="text-red-700">{error}</p>
+        <div className="mb-6 mx-4 md:mx-6 lg:mx-8 p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start space-x-3">
+          <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+          <p className="text-destructive">{error}</p>
         </div>
       )}
 
       {success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start space-x-3">
+        <div className="mb-6 mx-4 md:mx-6 lg:mx-8 p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-start space-x-3">
           <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-          <p className="text-green-700">Business settings saved successfully!</p>
+          <p className="text-green-600 dark:text-green-400">Business settings saved successfully!</p>
         </div>
       )}
 
-      <Card className="p-8">
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+      <Card className="p-4 md:p-6 lg:p-8 mx-4 md:mx-6 lg:mx-8">
+        <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
           {/* Business Name & Slug */}
           <div>
-            <Label htmlFor="name" className="text-base font-semibold">
+            <Label htmlFor="name" className="text-sm md:text-base font-semibold">
               Business Name *
             </Label>
             <Input
@@ -194,13 +194,13 @@ export default function BusinessPage() {
               required
               className="mt-2"
             />
-            <p className="text-xs text-gray-600 mt-1">
-              💡 Booking URL: https://yourdomain.com/booking/{formData.slug}
+            <p className="text-xs text-muted-foreground mt-1">
+              💡 Booking URL: https://booklyx.vercel.app/booking/{formData.slug}
             </p>
           </div>
 
           <div>
-            <Label htmlFor="email" className="text-base font-semibold">
+            <Label htmlFor="email" className="text-sm md:text-base font-semibold">
               Email *
             </Label>
             <Input
@@ -215,7 +215,7 @@ export default function BusinessPage() {
 
           {/* Description */}
           <div>
-            <Label htmlFor="description" className="text-base font-semibold">
+            <Label htmlFor="description" className="text-sm md:text-base font-semibold">
               Description
             </Label>
             <textarea
@@ -226,14 +226,14 @@ export default function BusinessPage() {
               }
               placeholder="Brief description of your business"
               rows={3}
-              className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg"
+              className="mt-2 w-full px-3 py-2 border border-input rounded-lg bg-background"
             />
           </div>
 
           {/* Contact Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="phone" className="text-base font-semibold">
+              <Label htmlFor="phone" className="text-sm md:text-base font-semibold">
                 Phone
               </Label>
               <Input
@@ -249,7 +249,7 @@ export default function BusinessPage() {
             </div>
 
             <div>
-              <Label htmlFor="website" className="text-base font-semibold">
+              <Label htmlFor="website" className="text-sm md:text-base font-semibold">
                 Website
               </Label>
               <Input
@@ -267,7 +267,7 @@ export default function BusinessPage() {
 
           {/* Address */}
           <div>
-            <Label htmlFor="address" className="text-base font-semibold">
+            <Label htmlFor="address" className="text-sm md:text-base font-semibold">
               Address
             </Label>
             <Input
@@ -282,9 +282,9 @@ export default function BusinessPage() {
           </div>
 
           {/* Timezone & Color */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="timezone" className="text-base font-semibold">
+              <Label htmlFor="timezone" className="text-sm md:text-base font-semibold">
                 Timezone
               </Label>
               <select
@@ -293,7 +293,7 @@ export default function BusinessPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, timezone: e.target.value })
                 }
-                className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="mt-2 w-full px-3 py-2 border border-input rounded-lg bg-background"
               >
                 {timezones.map((tz) => (
                   <option key={tz} value={tz}>
@@ -304,10 +304,10 @@ export default function BusinessPage() {
             </div>
 
             <div>
-              <Label htmlFor="color" className="text-base font-semibold">
-                Brand Color
+              <Label htmlFor="color" className="text-sm md:text-base font-semibold">
+                Brand Color (Optional)
               </Label>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex flex-col sm:flex-row gap-2">
                 <input
                   id="color"
                   type="color"
@@ -315,7 +315,7 @@ export default function BusinessPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, color: e.target.value })
                   }
-                  className="h-10 w-12 border border-gray-300 rounded-lg cursor-pointer"
+                  className="h-10 w-12 border border-input rounded-lg cursor-pointer"
                 />
                 <Input
                   type="text"
@@ -331,7 +331,7 @@ export default function BusinessPage() {
 
           {/* Logo */}
           <div>
-            <Label htmlFor="logo" className="text-base font-semibold">
+            <Label htmlFor="logo" className="text-sm md:text-base font-semibold">
               Logo URL
             </Label>
             <Input
@@ -356,11 +356,11 @@ export default function BusinessPage() {
             )}
           </div>
 
-          <div className="flex gap-3 pt-6 border-t">
+          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t">
             <Button
               type="submit"
               disabled={submitting}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {submitting ? "Saving..." : businessExists ? "Save Changes" : "Create Business"}
             </Button>
@@ -375,17 +375,17 @@ export default function BusinessPage() {
         </form>
       </Card>
 
-      <Card className="p-6 mt-8 bg-blue-50 border-blue-200">
-        <h3 className="font-semibold text-blue-900 mb-2">💡 Booking Link</h3>
-        <div className="flex items-center gap-2 p-3 bg-white rounded border border-blue-200">
-          <code className="flex-1 text-sm text-blue-700">
-            /booking/{formData.slug}
+      <Card className="p-4 md:p-6 mt-6 md:mt-8 mx-4 md:mx-6 lg:mx-8 bg-primary/5 border-primary/20">
+        <h3 className="font-semibold text-foreground mb-2">💡 Booking Link</h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-background rounded border border-primary/20">
+          <code className="flex-1 text-xs md:text-sm text-muted-foreground break-all">
+            https://booklyx.vercel.app/booking/{formData.slug}
           </code>
           <button
             onClick={() =>
-              navigator.clipboard.writeText(`/booking/${formData.slug}`)
+              navigator.clipboard.writeText(`https://booklyx.vercel.app/booking/${formData.slug}`)
             }
-            className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded"
+            className="w-full sm:w-auto px-3 py-1 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded whitespace-nowrap"
           >
             Copy
           </button>

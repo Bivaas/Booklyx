@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Calendar, Users, Bell, ArrowRight, LogOut } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface Business {
   id: string;
@@ -21,8 +23,18 @@ interface Business {
 
 export default function Home() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Helper function to get display name from email or user name
+  const getDisplayName = (user: any) => {
+    if (user.name) return user.name;
+    // Extract name from email (before @)
+    const emailPrefix = user.email?.split('@')[0] || 'User';
+    // Capitalize first letter
+    return emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+  };
 
   useEffect(() => {
     fetchBusinesses();
@@ -46,22 +58,25 @@ export default function Home() {
       {/* Navigation */}
       <nav className="border-b border-border/60 bg-card/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Link 
+            href="/" 
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              window.history.pushState({}, '', '/');
+            }}
+          >
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center shadow-sm">
               <Calendar className="w-5 h-5 text-primary-foreground" />
             </div>
             <h1 className="text-lg font-semibold text-foreground tracking-tight">Booklyx</h1>
           </Link>
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             {status === "loading" ? (
               <div className="w-8 h-8 border-2 border-border border-t-primary rounded-full animate-spin" />
             ) : session?.user ? (
               <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-foreground">{session.user.name || session.user.email}</p>
-                  <p className="text-xs text-muted-foreground">{session.user.email}</p>
-                </div>
                 <Link href="/dashboard">
                   <Button variant="ghost" size="sm">Dashboard</Button>
                 </Link>
@@ -71,6 +86,7 @@ export default function Home() {
                     Sign Out
                   </Button>
                 </Link>
+                <ThemeToggle />
               </div>
             ) : (
               <>
@@ -80,6 +96,7 @@ export default function Home() {
                 <Link href="/auth/register">
                   <Button>Get Started</Button>
                 </Link>
+                <ThemeToggle />
               </>
             )}
           </div>
@@ -87,16 +104,26 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative max-w-4xl mx-auto px-6 py-32">
+      <section id="home" className="relative max-w-4xl mx-auto px-6 py-32">
         {/* Decorative gradient blur */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10" />
         
-        <div className="text-center mb-20">
-          <div className="inline-block mb-6">
+        <motion.div 
+          className="text-center mb-20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div 
+            className="inline-block mb-6"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary mb-6">
               ✨ Modern Booking Platform
             </span>
-          </div>
+          </motion.div>
           <h2 className="text-6xl font-bold text-foreground mb-6 tracking-tight leading-tight">
             Professional Booking
             <span className="block bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Management</span>
@@ -110,15 +137,17 @@ export default function Home() {
                 Get Started <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
-            <Button variant="outline" size="lg">
-              Documentation
-            </Button>
+            <Link href="/docs">
+              <Button variant="outline" size="lg">
+                Documentation
+              </Button>
+            </Link>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Businesses Listing Section */}
-      <section className="max-w-6xl mx-auto px-6 py-20 border-t border-border/60">
+      <section id="businesses" className="max-w-6xl mx-auto px-6 py-20 border-t border-border/60">
         <div className="mb-12 text-center">
           <h3 className="text-3xl font-bold text-foreground mb-3 tracking-tight">Available Businesses</h3>
           <p className="text-muted-foreground text-lg">Browse and book appointments with approved businesses</p>
@@ -164,7 +193,7 @@ export default function Home() {
       </section>
 
       {/* Features Grid */}
-      <section className="max-w-6xl mx-auto px-6 py-24">
+      <section id="features" className="max-w-6xl mx-auto px-6 py-24">
         <div className="text-center mb-16">
           <h3 className="text-3xl font-bold text-foreground mb-4">Everything you need</h3>
           <p className="text-muted-foreground text-lg">Powerful features designed for modern businesses</p>
@@ -218,7 +247,7 @@ export default function Home() {
       </section>
 
       {/* Capabilities Section */}
-      <section className="max-w-6xl mx-auto px-6 py-24 border-t border-border/60">
+      <section id="capabilities" className="max-w-6xl mx-auto px-6 py-24 border-t border-border/60">
         <div className="mb-16 text-center">
           <h3 className="text-3xl font-bold text-foreground mb-4">Built for Enterprise</h3>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
@@ -247,19 +276,19 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="max-w-4xl mx-auto px-6 py-24">
-        <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-2xl p-12 text-center shadow-xl border border-primary/20">
+      <section id="cta" className="max-w-4xl mx-auto px-6 py-24">
+        <div className="bg-gradient-to-br from-secondary to-secondary/50 dark:from-slate-800 dark:to-slate-700 text-foreground rounded-2xl p-12 text-center shadow-xl border border-border/40 dark:border-border/60">
           <h3 className="text-3xl font-bold mb-4">Ready to streamline your bookings?</h3>
-          <p className="mb-8 opacity-95 text-lg">
+          <p className="mb-8 text-muted-foreground text-lg">
             Set up your booking system in minutes. No credit card required.
           </p>
           <div className="flex justify-center gap-3 flex-wrap">
             <Link href="/auth/signin">
-              <Button variant="secondary" size="lg">
+              <Button variant="default" size="lg" className="bg-primary hover:bg-primary/90">
                 Start Free
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="border-primary-foreground text-primary-foreground hover:bg-primary/20">
+            <Button variant="outline" size="lg">
               Contact Sales
             </Button>
           </div>
@@ -267,48 +296,72 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-secondary mt-20 py-12">
+      <footer className="border-t border-border bg-card mt-20 py-12">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <p className="font-semibold text-foreground text-sm mb-3">Product</p>
-              <ul className="space-y-2 text-xs text-muted-foreground">
-                <li><Link href="#" className="hover:text-foreground transition">Features</Link></li>
-                <li><Link href="#" className="hover:text-foreground transition">Pricing</Link></li>
-                <li><Link href="#" className="hover:text-foreground transition">Security</Link></li>
+              <p className="font-semibold text-foreground text-sm mb-4">Product</p>
+              <ul className="space-y-3 text-sm">
+                <li><a href="#home" className="text-muted-foreground hover:text-foreground transition">Home</a></li>
+                <li><a href="#features" className="text-muted-foreground hover:text-foreground transition">Features</a></li>
+                <li><a href="#capabilities" className="text-muted-foreground hover:text-foreground transition">Capabilities</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-foreground text-sm mb-3">Company</p>
-              <ul className="space-y-2 text-xs text-muted-foreground">
-                <li><Link href="#" className="hover:text-foreground transition">About</Link></li>
-                <li><Link href="#" className="hover:text-foreground transition">Blog</Link></li>
-                <li><Link href="#" className="hover:text-foreground transition">Contact</Link></li>
+              <p className="font-semibold text-foreground text-sm mb-4">Resources</p>
+              <ul className="space-y-3 text-sm">
+                <li><Link href="/docs" className="text-muted-foreground hover:text-foreground transition">Documentation</Link></li>
+                <li><Link href="/auth/signin" className="text-muted-foreground hover:text-foreground transition">Sign In</Link></li>
+                <li><a href="#cta" className="text-muted-foreground hover:text-foreground transition">Get Started</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-foreground text-sm mb-3">Resources</p>
-              <ul className="space-y-2 text-xs text-muted-foreground">
-                <li><Link href="#" className="hover:text-foreground transition">Docs</Link></li>
-                <li><Link href="#" className="hover:text-foreground transition">API</Link></li>
-                <li><Link href="#" className="hover:text-foreground transition">Status</Link></li>
+              <p className="font-semibold text-foreground text-sm mb-4">Developer</p>
+              <ul className="space-y-3 text-sm">
+                <li><a href="https://github.com/bivaas" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">GitHub</a></li>
+                <li><Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition">Dashboard</Link></li>
+                <li><a href="mailto:bivaasbaral7@gmail.com" className="text-muted-foreground hover:text-foreground transition">Support</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-foreground text-sm mb-3">Legal</p>
-              <ul className="space-y-2 text-xs text-muted-foreground">
-                <li><Link href="#" className="hover:text-foreground transition">Privacy</Link></li>
-                <li><Link href="#" className="hover:text-foreground transition">Terms</Link></li>
-                <li><Link href="#" className="hover:text-foreground transition">License</Link></li>
+              <p className="font-semibold text-foreground text-sm mb-4">Company</p>
+              <ul className="space-y-3 text-sm">
+                <li><a href="https://bivaasbaral.com.np" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">Portfolio</a></li>
+                <li><a href="https://bivaas.me" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">About</a></li>
+                <li><a href="mailto:bivaasbaral7@gmail.com" className="text-muted-foreground hover:text-foreground transition">Contact</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-border pt-8 flex justify-between items-center text-xs text-muted-foreground">
-            <p>&copy; 2026 Booklyx. All rights reserved.</p>
-            <div className="flex gap-4">
-              <a href="#" className="hover:text-foreground transition">Twitter</a>
-              <a href="#" className="hover:text-foreground transition">GitHub</a>
-              <a href="#" className="hover:text-foreground transition">LinkedIn</a>
+          <div className="border-t border-border/60 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-sm">
+              <div className="text-center md:text-left">
+                <p className="text-muted-foreground mb-2">&copy; 2026 Booklyx. All rights reserved.</p>
+                <p className="text-muted-foreground">
+                  Built with precision by{" "}
+                  <a
+                    href="https://bivaasbaral.com.np"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-foreground hover:text-primary transition-colors"
+                  >
+                    Bivaas Baral
+                  </a>
+                  {" "}•{" "}
+                  <a
+                    href="https://bivaas.me"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    About
+                  </a>
+                </p>
+              </div>
+              <div className="flex gap-6">
+                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">Twitter</a>
+                <a href="https://github.com/bivaas" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">GitHub</a>
+                <a href="https://www.linkedin.com/in/bivaas/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">LinkedIn</a>
+              </div>
             </div>
           </div>
         </div>
