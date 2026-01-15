@@ -8,21 +8,34 @@ import { checkOTPRateLimit, getClientIP } from "@/lib/rate-limit";
 import { otpRequestSchema } from "@/lib/schemas/auth";
 import { sendOTPEmail } from "@/lib/notifications";
 import env from "@/lib/env";
+import crypto from "crypto";
+
+/**
+ * Generate device fingerprint from user agent and IP
+ */
+function generateDeviceFingerprint(userAgent: string, ipAddress: string): string {
+  return crypto
+    .createHash("sha256")
+    .update(`${userAgent}:${ipAddress}`)
+    .digest("hex");
+}
 
 export async function POST(request: Request) {
   try {
     const clientIP = getClientIP(request);
+    const userAgent = request.headers.get("user-agent") || "unknown";
+    const deviceFingerprint = generateDeviceFingerprint(userAgent, clientIP);
     
     const body = await request.json().catch(() => ({}));
     const { email } = otpRequestSchema.parse(body);
     const emailHash = hashEmail(email);
 
-    // In-memory rate limit is per instance and resets on cold start; Redis is needed for horizontal scale.
-    const rateLimitKey = `${email}|${clientIP}`;
-    if (!checkOTPRateLimit(rateLimitKey)) {
+    // Strict rate limiting: 1 OTP per email per device per network per 24 hours
+    const allowed = await checkOTPRateLimit(email, clientIP, deviceFingerprint);
+    if (!allowed) {
       return NextResponse.json(
         {
-          error: "Too many OTP requests. Please try again in 15 minutes.",
+          error: "Too many OTP requests. Please try again later.",
           code: "RATE_LIMITED",
         },
         { status: 429 }

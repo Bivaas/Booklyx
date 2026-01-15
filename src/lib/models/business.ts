@@ -29,6 +29,7 @@ const BusinessSchema = new Schema(
     approvedBy: { type: String }, // Admin user ID who approved
     suspendedAt: { type: Date },
     suspendedReason: { type: String },
+    lastEmailChangeAt: { type: Date }, // Track last email change for 3-month cooldown
   },
   { timestamps: true }
 );

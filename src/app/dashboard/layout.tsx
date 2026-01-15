@@ -92,8 +92,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             transition={{ duration: 0.3 }}
           >
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground">Welcome back</p>
-              <p className="font-bold text-foreground text-lg">{data?.user?.name || "User"}</p>
+              <Link href="/" className="hover:opacity-80 transition-opacity inline-block">
+                <p className="text-sm text-muted-foreground">Welcome back</p>
+                <p className="font-bold text-foreground text-lg">{data?.user?.name || "User"}</p>
+              </Link>
             </div>
 
             <div className="flex items-center gap-3">

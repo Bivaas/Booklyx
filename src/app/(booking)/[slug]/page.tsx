@@ -46,14 +46,14 @@ interface BookingFormData {
 }
 
 interface BookingPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default function PublicBookingPage({ params }: BookingPageProps) {
-  const { slug } = use(params);
-  const businessSlug = slug;
+  const resolvedParams = use(params);
+  const businessSlug = resolvedParams.slug;
   const {
     register,
     handleSubmit,
@@ -161,7 +161,7 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
           customerId: formData.email,
           customerName: formData.name,
           customerEmail: formData.email,
-          customerPhone: formData.phone || undefined,
+          customerPhone: formData.phone,
           startTime: startTime.toISOString(),
           endTime: endTime.toISOString(),
           notes: formData.notes || undefined,
@@ -398,14 +398,23 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
 
                     <div>
                       <Label htmlFor="phone" className="text-base font-semibold">
-                        Phone Number (Optional)
+                        Phone Number *
                       </Label>
                       <Input
-                        {...register("phone")}
+                        {...register("phone", {
+                          required: "Phone number is required",
+                          pattern: {
+                            value: /^[\d+\-\s()]+$/,
+                            message: "Please enter a valid phone number",
+                          },
+                        })}
                         type="tel"
                         placeholder="(123) 456-7890"
                         className="mt-2"
                       />
+                      {errors.phone && (
+                        <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                      )}
                     </div>
 
                     <div>

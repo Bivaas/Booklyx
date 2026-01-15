@@ -8,22 +8,36 @@ import { generateOTP, hashEmail, hashString } from "@/lib/crypto";
 import { checkOTPRateLimit, getClientIP } from "@/lib/rate-limit";
 import { sendOTPEmail } from "@/lib/notifications";
 import env from "@/lib/env";
+import crypto from "crypto";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+/**
+ * Generate device fingerprint from user agent and IP
+ */
+function generateDeviceFingerprint(userAgent: string, ipAddress: string): string {
+  return crypto
+    .createHash("sha256")
+    .update(`${userAgent}:${ipAddress}`)
+    .digest("hex");
+}
+
 export async function POST(request: Request) {
   try {
     const clientIP = getClientIP(request);
+    const userAgent = request.headers.get("user-agent") || "unknown";
+    const deviceFingerprint = generateDeviceFingerprint(userAgent, clientIP);
+
     const body = await request.json().catch(() => ({}));
     const { email, password } = signupSchema.parse(body);
     const emailHash = hashEmail(email);
 
-    // Rate limit check
-    const rateLimitKey = `signup|${email}|${clientIP}`;
-    if (!checkOTPRateLimit(rateLimitKey)) {
+    // Strict rate limiting: 1 OTP per email per device per network per 24 hours
+    const allowed = await checkOTPRateLimit(email, clientIP, deviceFingerprint);
+    if (!allowed) {
       return NextResponse.json(
         {
           error: "Too many signup attempts. Please try again in 15 minutes.",
