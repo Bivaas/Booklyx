@@ -28,22 +28,42 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
   const [updating, setUpdating] = useState<string | null>(null);
+  const [businessId, setBusinessId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchBookings();
-  }, [filter, session]);
+    fetchBusinessId();
+  }, [session]);
+
+  useEffect(() => {
+    if (businessId) {
+      fetchBookings();
+    }
+  }, [filter, businessId]);
+
+  const fetchBusinessId = async () => {
+    try {
+      const response = await fetch("/api/business");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.business?._id) {
+          setBusinessId(data.business._id);
+        }
+      } else if (response.status === 404) {
+        setError("No business found. Please create a business in settings.");
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error("Failed to fetch business:", err);
+    }
+  };
 
   const fetchBookings = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Get businessId from session
-      const businessId = (session?.user as any)?.businessId;
-      
       if (!businessId) {
         setBookings([]);
-        setError("No business found. Please create a business in settings.");
         setLoading(false);
         return;
       }

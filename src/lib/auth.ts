@@ -125,13 +125,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id;
-        
-        // Fetch user to get businessId
-        await connectDb();
-        const dbUser = await User.findById(token.id);
-        if (dbUser?.businessId) {
-          (session.user as any).businessId = dbUser.businessId.toString();
-        }
+        // Note: businessId will be fetched on-demand in API routes to avoid connection issues
       }
       return session;
     },
