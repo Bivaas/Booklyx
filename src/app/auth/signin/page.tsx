@@ -81,6 +81,7 @@ function SignInContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                autoComplete="email"
                 className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
               />
             </div>
@@ -97,6 +98,7 @@ function SignInContent() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
+                autoComplete="current-password"
                 className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
               />
             </div>

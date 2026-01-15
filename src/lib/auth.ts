@@ -85,6 +85,10 @@ export const authOptions: NextAuthOptions = {
   secret: authSecret,
   adapter: MongoDBAdapter(mongoClientPromise),
   providers: providers.length > 0 ? providers : [],
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",
@@ -93,6 +97,8 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },
