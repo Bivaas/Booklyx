@@ -14,6 +14,7 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
   ADMIN_EMAILS: z.string().optional(),
+  ENABLE_TEST_MODE: z.string().optional().default("false"),
 });
 
 const env = envSchema.parse({
@@ -29,6 +30,7 @@ const env = envSchema.parse({
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM,
   ADMIN_EMAILS: process.env.ADMIN_EMAILS,
+  ENABLE_TEST_MODE: process.env.ENABLE_TEST_MODE,
 });
 
 export default env;

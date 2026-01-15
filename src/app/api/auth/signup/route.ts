@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const isTestMode = process.env.NODE_ENV === "development" || process.env.ENABLE_TEST_MODE === "true";
+    const isTestMode = env.NODE_ENV === "development" || env.ENABLE_TEST_MODE === "true";
 
     if (!env.RESEND_API_KEY || !env.EMAIL_FROM) {
       if (!isTestMode) {
