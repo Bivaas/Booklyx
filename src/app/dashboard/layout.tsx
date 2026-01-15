@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { LogOut, Calendar, Settings, Users, Package } from "lucide-react";
+import { LogOut, Calendar, Settings, Users, Package, ShieldCheck, User } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -52,12 +52,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return null;
   }
 
-  const navItems = [
-    { href: "/dashboard", label: "Bookings", icon: <Calendar className="w-4 h-4" /> },
-    { href: "/dashboard/services", label: "Services", icon: <Package className="w-4 h-4" /> },
-    { href: "/dashboard/staff", label: "Staff", icon: <Users className="w-4 h-4" /> },
-    { href: "/dashboard/business", label: "Settings", icon: <Settings className="w-4 h-4" /> },
+  // Define Navigation based on Role
+  let navItems = [
+    { href: "/dashboard", label: "My Bookings", icon: <Calendar className="w-4 h-4" /> },
+    { href: "/dashboard/profile", label: "Profile", icon: <User className="w-4 h-4" /> },
   ];
+
+  const role = data?.user?.role;
+
+  if (role === "owner") {
+    navItems = [
+      { href: "/dashboard", label: "Incoming Bookings", icon: <Calendar className="w-4 h-4" /> },
+      { href: "/dashboard/services", label: "Services", icon: <Package className="w-4 h-4" /> },
+      { href: "/dashboard/staff", label: "Staff", icon: <Users className="w-4 h-4" /> },
+      { href: "/dashboard/business", label: "Business Profile", icon: <Settings className="w-4 h-4" /> },
+    ];
+  } else if (role === "admin") {
+    navItems = [
+      { href: "/dashboard/admin", label: "Approvals", icon: <ShieldCheck className="w-4 h-4" /> },
+      { href: "/dashboard/analytics", label: "System Data", icon: <Settings className="w-4 h-4" /> },
+    ];
+  }
 
   return (
     <div className="min-h-screen bg-background">

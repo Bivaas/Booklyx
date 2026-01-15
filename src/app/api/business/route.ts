@@ -127,6 +127,20 @@ export async function POST(request: Request) {
 
     await business.save();
 
+    // Update user role to OWNER and link business
+    // @ts-ignore
+    await import("@/lib/models/user").then(({ User }) => 
+      User.findOneAndUpdate(
+        { email: session.user.email },
+        { 
+          $set: { 
+            role: "owner",
+            businessId: business._id 
+          } 
+        }
+      )
+    );
+
     return NextResponse.json(
       {
         success: true,

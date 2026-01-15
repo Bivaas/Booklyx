@@ -177,3 +177,48 @@ export async function sendBookingCancellation(
     console.error("Failed to send booking cancellation email:", error);
   }
 }
+
+export async function sendBookingNotificationToOwner(
+  ownerEmail: string,
+  customerName: string,
+  customerEmail: string,
+  customerPhone: string,
+  serviceName: string,
+  startTime: Date,
+) {
+  const resendClient = await initResend();
+  // Ensure Resend is configured, otherwise we must fail as per requirements
+  if (!resendClient) {
+    throw new Error("Email service not configured - cannot notify business owner");
+  }
+
+  const formattedDate = startTime.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  try {
+    await resendClient.emails.send({
+      from: env.EMAIL_FROM || "noreply@booklyx.com",
+      to: ownerEmail,
+      subject: `New Booking: ${customerName} - ${formattedDate}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>New Booking Received</h2>
+          <p><strong>Customer:</strong> ${customerName}</p>
+          <p><strong>Email:</strong> ${customerEmail}</p>
+          <p><strong>Contact:</strong> ${customerPhone || "Not provided"}</p>
+          <p><strong>Service:</strong> ${serviceName}</p>
+          <p><strong>Date & Time:</strong> ${formattedDate}</p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    console.error("Failed to send booking notification to owner:", error);
+    throw error; // Propagate error to fail the booking
+  }
+}
