@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, CheckCircle, Clock, Trash2, X, Calendar, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
+import { Role } from "@/lib/roles";
 
 interface Booking {
   _id: string;
@@ -32,7 +33,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (session?.user) {
-      if (session.user.role === 'owner') {
+      if (session.user.role === Role.OWNER) {
         fetchBusinessAndBookings();
       } else {
         // Customer or Admin

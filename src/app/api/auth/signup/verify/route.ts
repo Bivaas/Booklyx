@@ -16,7 +16,6 @@ const verifySchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const isTestMode = env.NODE_ENV === "development" || env.ENABLE_TEST_MODE === "true";
     const body = await request.json().catch(() => ({}));
     const { email, password, otp } = verifySchema.parse(body);
     const emailHash = hashEmail(email);

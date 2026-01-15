@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { Booking, BookingStatus } from "@/lib/models/booking";
 import { Business, BusinessStatus } from "@/lib/models/business";
 import { Service } from "@/lib/models/service";
+import { Role } from "@/lib/roles";
 import { sendBookingCancellation } from "@/lib/notifications";
 import { z } from "zod";
 
@@ -46,7 +47,7 @@ export async function GET(
     
     const isCustomer = booking.customerEmail === session.user.email;
     const isOwner = businessEmail === session.user.email;
-    const isAdmin = session.user.role === "admin";
+    const isAdmin = session.user.role === Role.ADMIN;
 
     if (!isCustomer && !isOwner && !isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -98,7 +99,7 @@ export async function PATCH(
     const business = await Business.findById(booking.businessId._id || booking.businessId);
     
     const isOwner = business.email === session.user.email;
-    const isAdmin = session.user.role === "admin";
+    const isAdmin = session.user.role === Role.ADMIN;
     const isCustomer = booking.customerEmail === session.user.email;
 
     if (isCustomer && !isOwner && !isAdmin) {

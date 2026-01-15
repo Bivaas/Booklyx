@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { use } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -51,7 +52,8 @@ interface BookingPageProps {
 }
 
 export default function PublicBookingPage({ params }: BookingPageProps) {
-  const businessSlug = params.slug;
+  const { slug } = use(params);
+  const businessSlug = slug;
   const {
     register,
     handleSubmit,

@@ -33,15 +33,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const isTestMode = env.NODE_ENV === "development" || env.ENABLE_TEST_MODE === "true";
-
     if (!env.RESEND_API_KEY || !env.EMAIL_FROM) {
-      if (!isTestMode) {
-        return NextResponse.json(
-          { error: "Email service not configured" },
-          { status: 500 }
-        );
-      }
+      return NextResponse.json(
+        { error: "Email service not configured" },
+        { status: 500 }
+      );
     }
 
     await connectDb();
@@ -93,34 +89,24 @@ export async function POST(request: Request) {
       createdAt: new Date(),
     });
 
-    // Send OTP email or use test mode
-    if (isTestMode) {
-      // In test mode, use fixed OTP: 123456 or log to console
-      const testOTP = "123456";
-      const testHashedOTP = hashString(testOTP);
-      await OTP.findOneAndUpdate(
-        { emailHash },
-        { hashedOTP: testHashedOTP },
-        { new: true }
-      );
-      console.log(`[TEST MODE] OTP for ${email}: ${testOTP}`);
-    } else {
-      sendOTPEmail(email, otp).catch((error) => {
-        if (process.env.NODE_ENV === "development") {
-          console.error("OTP email failed");
-        }
-      });
+    // Send OTP email
+    await sendOTPEmail(email, otp).catch((error) => {
+      if (process.env.NODE_ENV === "development") {
+        console.error("OTP email send failed:", error);
+      }
+    });
+
+    // Development-only: Log OTP for testing (remove in production)
+    if (process.env.NODE_ENV === "development" && !env.RESEND_API_KEY) {
+      console.log(`[DEV] OTP for ${email}: ${otp}`);
     }
 
     return NextResponse.json(
       {
         success: true,
-        message: isTestMode 
-          ? "Test mode: Use OTP 123456 to verify"
-          : "OTP sent to your email",
+        message: "OTP sent to your email",
         expiresIn: 300, // seconds
         code: "OTP_SENT",
-        testMode: isTestMode,
       },
       { status: 200 }
     );
