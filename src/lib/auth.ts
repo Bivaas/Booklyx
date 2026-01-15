@@ -80,8 +80,11 @@ providers.push(
       }
 
       // Track device login
-      const clientIP = getClientIP(req);
-      const userAgent = req.headers.get("user-agent") || "";
+      // Extract IP from headers (req is RequestInternal in authorize callback)
+      const clientIP = (req.headers?.get?.("x-forwarded-for") as string)?.split(",")[0] || 
+                       (req.headers?.["x-real-ip"] as string) || 
+                       "unknown";
+      const userAgent = (req.headers?.get?.("user-agent") as string) || "";
       await trackDeviceLogin(user._id.toString(), clientIP, userAgent);
 
       // Update last login
