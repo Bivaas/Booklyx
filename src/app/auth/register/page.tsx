@@ -46,9 +46,9 @@ export default function RegisterPage() {
 
       if (data.testMode) {
         setTestMode(true);
-        setSuccess(data.message || \"Test mode: Use OTP 123456\");
+        setSuccess(data.message || "Test mode: Use OTP 123456");
       } else {
-        setSuccess(\"OTP sent to your email\");
+        setSuccess("OTP sent to your email");
       }
       setStep("verify");
       setLoading(false);
