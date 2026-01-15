@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
+  const [updating, setUpdating] = useState<string | null>(null);
   const [businessId, setBusinessId] = useState<string | null>(null);
 
   useEffect(() => {
