@@ -96,6 +96,8 @@ providers.push(
         email: user.email,
         name: user.name,
         image: null,
+        role: user.role,
+        emailVerified: user.emailVerified,
       };
     },
   })
@@ -103,7 +105,7 @@ providers.push(
 
 export const authOptions: NextAuthOptions = {
   secret: authSecret,
-  adapter: MongoDBAdapter(mongoClientPromise),
+  // adapter: MongoDBAdapter(mongoClientPromise), // Commented out - using JWT strategy with custom credentials
   providers: providers.length > 0 ? providers : [],
   session: {
     strategy: "jwt",
