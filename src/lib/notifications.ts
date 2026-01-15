@@ -222,3 +222,42 @@ export async function sendBookingNotificationToOwner(
     throw error; // Propagate error to fail the booking
   }
 }
+
+/**
+ * Send email change notification
+ */
+export async function sendBusinessEmailChangeNotification(
+  oldEmail: string,
+  newEmail: string,
+  businessName: string
+) {
+  const resendClient = await initResend();
+  if (!resendClient) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Resend not configured");
+    }
+    return;
+  }
+
+  try {
+    await resendClient.emails.send({
+      from: env.EMAIL_FROM || "noreply@booklyx.com",
+      to: oldEmail,
+      subject: `Business Email Changed - ${businessName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Business Email Updated</h2>
+          <p>Your business <strong>${businessName}</strong> email has been changed.</p>
+          <p><strong>Old Email:</strong> ${oldEmail}</p>
+          <p><strong>New Email:</strong> ${newEmail}</p>
+          <p>Your next email change will be available after 3 months.</p>
+          <p>If you did not make this change, please contact support immediately.</p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Failed to send email change notification");
+    }
+  }
+}

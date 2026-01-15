@@ -23,14 +23,14 @@ export function Sidebar({ items, className }: SidebarProps) {
   return (
     <aside className={cn("w-64 bg-card/50 backdrop-blur-sm border-r border-border/60 h-screen overflow-y-auto sticky top-0", className)}>
       <div className="p-6">
-        <div className="flex items-center gap-2 mb-8">
+        <Link href="/" className="flex items-center gap-2 mb-8 hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center shadow-sm">
             <svg className="w-5 h-5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
           <h2 className="text-lg font-semibold text-foreground tracking-tight">Booklyx</h2>
-        </div>
+        </Link>
 
         <nav className="space-y-1">
           {items.map((item) => {

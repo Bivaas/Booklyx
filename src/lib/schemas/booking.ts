@@ -10,7 +10,10 @@ export const bookingRequestSchema = z.object({
   staffId: z.string().optional(),
   customerName: z.string().min(1, "Name is required").transform(sanitizeString),
   customerEmail: z.string().email("Invalid email"),
-  customerPhone: z.string().optional().transform((val) => val ? sanitizeString(val) : val),
+  customerPhone: z.string()
+    .min(1, "Phone number is required")
+    .regex(/^[\d+\-\s()]+$/, "Invalid phone number format")
+    .transform(sanitizeString),
   startTime: z.coerce.date(),
   notes: z.string().optional().transform((val) => val ? sanitizeString(val) : val),
   verificationToken: z.string().min(1, "Email verification required"),

@@ -31,7 +31,8 @@ export async function POST(request: Request) {
     const clientIP = getClientIP(request);
     
     // Rate limiting: 10 bookings per minute per IP
-    if (!checkBookingRateLimit(clientIP)) {
+    const bookingAllowed = await checkBookingRateLimit(clientIP);
+    if (!bookingAllowed) {
       return NextResponse.json(
         { error: "Too many booking requests. Please try again later." },
         { status: 429 }

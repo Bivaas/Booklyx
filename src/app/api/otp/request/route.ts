@@ -5,26 +5,54 @@ import { OTP } from "@/lib/models/otp";
 import { generateOTP, hashEmail, hashString } from "@/lib/crypto";
 import { checkOTPRateLimit, getClientIP } from "@/lib/rate-limit";
 import { sendOTPEmail } from "@/lib/notifications";
+import crypto from "crypto";
 
 const requestOTPSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
 /**
+ * Generate device fingerprint from user agent and IP
+ * Used for strict rate limiting (1 OTP per device per network per 24 hours)
+ */
+function generateDeviceFingerprint(userAgent: string, ipAddress: string): string {
+  return crypto
+    .createHash("sha256")
+    .update(`${userAgent}:${ipAddress}`)
+    .digest("hex");
+}
+
+/**
  * POST /api/otp/request
+ * 
  * Request an OTP for email verification
+ * 
+ * STRICT RATE LIMITING (Redis-backed):
+ * - 1 OTP per email per device per network per 24 hours
+ * - Composite key: IP + email + device fingerprint
+ * - Generic error message (no hints to attackers)
+ * - Returns 429 if rate limited
  */
 export async function POST(request: Request) {
   try {
     const clientIP = getClientIP(request);
+    const userAgent = request.headers.get("user-agent") || "unknown";
+    const deviceFingerprint = generateDeviceFingerprint(userAgent, clientIP);
+
     const body = await request.json();
     const { email } = requestOTPSchema.parse(body);
     const emailHash = hashEmail(email);
 
-    // In-memory rate limiting is per instance and resets on cold start; Redis is needed for horizontal scale.
-    if (!checkOTPRateLimit(email)) {
+    // STRICT RATE LIMITING: 1 OTP per email per device per network per 24 hours
+    // Uses Redis for distributed enforcement
+    const allowed = await checkOTPRateLimit(email, clientIP, deviceFingerprint);
+    if (!allowed) {
+      // Generic error message - no hints to attackers
       return NextResponse.json(
-        { error: "Too many OTP requests. Please try again later." },
+        { 
+          error: "Too many OTP requests. Please try again later.",
+          code: "RATE_LIMITED"
+        },
         { status: 429 }
       );
     }
@@ -43,7 +71,10 @@ export async function POST(request: Request) {
       const timeSinceCreation = Date.now() - existingOTP.createdAt.getTime();
       if (timeSinceCreation < 60000) {
         return NextResponse.json(
-          { error: "OTP already sent. Please wait before requesting a new one." },
+          { 
+            error: "OTP already sent. Please wait before requesting a new one.",
+            code: "OTP_ALREADY_SENT"
+          },
           { status: 429 }
         );
       }
