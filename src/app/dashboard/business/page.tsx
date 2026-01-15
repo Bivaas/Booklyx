@@ -27,6 +27,8 @@ export default function BusinessPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [businessExists, setBusinessExists] = useState(false);
+  const [businessId, setBusinessId] = useState<string | null>(null);
   const [formData, setFormData] = useState<BusinessData>({
     name: "",
     slug: "",
@@ -49,20 +51,27 @@ export default function BusinessPage() {
       setLoading(true);
       setError(null);
       const response = await fetch("/api/business");
-      if (!response.ok) throw new Error("Business not found");
-      const { business } = await response.json();
-      setFormData({
-        name: business.name || "",
-        slug: business.slug || "",
-        email: business.email || "",
-        description: business.description || "",
-        logo: business.logo || "",
-        website: business.website || "",
-        phone: business.phone || "",
-        address: business.address || "",
-        timezone: business.timezone || "UTC",
-        color: business.color || "#3b82f6",
-      });
+      if (response.ok) {
+        const { business } = await response.json();
+        setBusinessExists(true);
+        setBusinessId(business._id);
+        setFormData({
+          name: business.name || "",
+          slug: business.slug || "",
+          email: business.email || "",
+          description: business.description || "",
+          logo: business.logo || "",
+          website: business.website || "",
+          phone: business.phone || "",
+          address: business.address || "",
+          timezone: business.timezone || "UTC",
+          color: business.color || "#3b82f6",
+        });
+      } else {
+        // No existing business, which is OK for new users
+        setBusinessExists(false);
+        setError(null);
+      }
     } catch (err) {
       setError("Failed to load business data");
     } finally {
@@ -76,19 +85,32 @@ export default function BusinessPage() {
       setSubmitting(true);
       setError(null);
 
-      // Get current business ID
-      const businessResponse = await fetch("/api/business");
-      if (!businessResponse.ok) throw new Error("Business not found");
-      const { business } = await businessResponse.json();
+      if (businessExists && businessId) {
+        // Update existing business
+        const response = await fetch(`/api/business/${businessId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
 
-      // Update business
-      const response = await fetch(`/api/business/${business._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+        if (!response.ok) throw new Error("Failed to update business");
+      } else {
+        // Create new business
+        const response = await fetch("/api/business", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
 
-      if (!response.ok) throw new Error("Failed to update business");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to create business");
+        }
+        
+        const { business } = await response.json();
+        setBusinessId(business._id);
+        setBusinessExists(true);
+      }
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -340,7 +362,7 @@ export default function BusinessPage() {
               disabled={submitting}
               className="bg-indigo-600 hover:bg-indigo-700 text-white"
             >
-              {submitting ? "Saving..." : "Save Changes"}
+              {submitting ? "Saving..." : businessExists ? "Save Changes" : "Create Business"}
             </Button>
             <Button
               type="button"
