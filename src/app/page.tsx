@@ -1,10 +1,44 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Calendar, Users, Bell, ArrowRight } from "lucide-react";
 
+interface Business {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  logo?: string;
+  phone?: string;
+  address?: string;
+  color: string;
+}
+
 export default function Home() {
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBusinesses();
+  }, []);
+
+  const fetchBusinesses = async () => {
+    try {
+      const res = await fetch("/api/businesses");
+      if (res.ok) {
+        const data = await res.json();
+        setBusinesses(data.businesses || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch businesses:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -57,6 +91,52 @@ export default function Home() {
             </Button>
           </div>
         </div>
+      </section>
+
+      {/* Businesses Listing Section */}
+      <section className="max-w-6xl mx-auto px-6 py-20 border-t border-border/60">
+        <div className="mb-12 text-center">
+          <h3 className="text-3xl font-bold text-foreground mb-3 tracking-tight">Available Businesses</h3>
+          <p className="text-muted-foreground text-lg">Browse and book appointments with approved businesses</p>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="w-10 h-10 border-2 border-border border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading businesses...</p>
+          </div>
+        ) : businesses.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No businesses available yet. Check back soon!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {businesses.map((business) => (
+              <Link key={business.id} href={`/${business.slug}`}>
+                <Card className="hover:shadow-lg hover:border-primary/30 transition-all duration-300 cursor-pointer h-full" style={{ borderTopColor: business.color, borderTopWidth: "4px" }}>
+                  <div className="p-6">
+                    {business.logo && (
+                      <img src={business.logo} alt={business.name} className="h-10 mb-3 object-contain" />
+                    )}
+                    <h3 className="font-bold text-lg text-foreground mb-2">{business.name}</h3>
+                    {business.description && (
+                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{business.description}</p>
+                    )}
+                    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                      {business.phone && <span>📞 {business.phone}</span>}
+                      {business.address && <span className="line-clamp-1">📍 {business.address}</span>}
+                    </div>
+                    <div className="mt-4">
+                      <Button variant="outline" size="sm" className="w-full">
+                        Book Now <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Features Grid */}
