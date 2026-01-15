@@ -116,10 +116,10 @@ export async function POST(request: Request) {
       {
         success: true,
         message: isTestMode 
-          ? \"Test mode: Use OTP 123456 to verify\"
-          : \"OTP sent to your email\",
+          ? "Test mode: Use OTP 123456 to verify"
+          : "OTP sent to your email",
         expiresIn: 300, // seconds
-        code: \"OTP_SENT\",
+        code: "OTP_SENT",
         testMode: isTestMode,
       },
       { status: 200 }
