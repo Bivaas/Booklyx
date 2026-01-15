@@ -36,6 +36,11 @@ const UserSchema = new Schema(
     mfaEnabled: { type: Boolean, default: false },
     mfaSecret: String,
     mfaBackupCodes: [String],
+    // Security: Account warm-up and risk scoring
+    accountCreatedAt: { type: Date, default: Date.now },
+    riskScore: { type: Number, default: 0 }, // Increased by failed attempts, blocked signups, etc.
+    emailSendingDisabled: { type: Boolean, default: false }, // Disabled if riskScore is too high
+    failedOTPAttempts: { type: Number, default: 0 }, // Track failed OTP attempts
   },
   { timestamps: true }
 );
@@ -44,6 +49,8 @@ UserSchema.index({ email: 1 });
 UserSchema.index({ businessId: 1, role: 1 });
 UserSchema.index({ emailVerified: 1 });
 UserSchema.index({ "rememberMeTokens.createdAt": 1 }, { sparse: true });
+UserSchema.index({ accountCreatedAt: 1 }); // For warm-up policy checks
+UserSchema.index({ riskScore: 1 }); // For finding high-risk accounts
 
 export const User =
   mongoose.models.User || mongoose.model("User", UserSchema);

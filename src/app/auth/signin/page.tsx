@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { AlertCircle } from "lucide-react";
 
 function SignInContent() {
@@ -35,14 +36,17 @@ function SignInContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4">
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle />
+      </div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(99,102,241,0.08),transparent_25%),radial-gradient(circle_at_80%_0%,rgba(56,189,248,0.08),transparent_25%)]" aria-hidden />
-      <Card className="relative w-full max-w-lg border border-slate-800/60 bg-slate-900/70 backdrop-blur-md shadow-2xl shadow-slate-900/40">
+      <Card className="relative w-full max-w-lg border border-border bg-card/70 backdrop-blur-md shadow-2xl">
         <div className="p-8 pb-6 flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Booklyx Access</p>
-            <h1 className="text-3xl font-semibold text-white mt-2">Sign in</h1>
-            <p className="text-sm text-slate-400 mt-1">Manage bookings, staff, and schedules</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Booklyx Access</p>
+            <h1 className="text-3xl font-semibold text-foreground mt-2">Sign in</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage bookings, staff, and schedules</p>
           </div>
           <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center text-white font-semibold shadow-lg shadow-indigo-500/30">
             Bx
@@ -50,18 +54,20 @@ function SignInContent() {
         </div>
 
         {error && (
-          <div className="mx-8 mb-4 p-4 bg-red-50/5 border border-red-500/30 rounded-lg flex items-start space-x-3 text-sm">
-            <AlertCircle className="h-5 w-5 text-red-300 flex-shrink-0 mt-0.5" />
-            <div className="text-red-100">
-              <p className="font-semibold">Sign in failed</p>
-              <p className="mt-1 text-red-200/80">
+          <div className="mx-8 mb-4 p-5 bg-destructive/10 border-2 border-destructive/40 rounded-lg flex items-start space-x-3">
+            <AlertCircle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-destructive text-base">Sign in failed</p>
+              <p className="mt-2 text-destructive/90 text-sm leading-relaxed">
                 {error === "OAuthSignin"
                   ? "Could not reach Google. Check credentials and network."
                   : error === "OAuthCallback"
                   ? "Callback failed. Verify redirect URL in Google console."
                   : error === "OAuthCreateAccount"
                   ? "Account could not be created."
-                  : "An error occurred during sign in."}
+                  : error === "CredentialsSignin"
+                  ? "Invalid email or password. Please check your credentials and try again."
+                  : "An error occurred during sign in. Please try again."}
               </p>
             </div>
           </div>
@@ -70,7 +76,7 @@ function SignInContent() {
         <div className="px-8 pb-8 space-y-4">
           <form onSubmit={handleCredentialsSignIn} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-300">
+              <Label htmlFor="email" className="text-foreground">
                 Email Address
               </Label>
               <Input
@@ -82,12 +88,12 @@ function SignInContent() {
                 required
                 disabled={loading}
                 autoComplete="email"
-                className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-300">
+              <Label htmlFor="password" className="text-foreground">
                 Password
               </Label>
               <Input
@@ -99,7 +105,7 @@ function SignInContent() {
                 required
                 disabled={loading}
                 autoComplete="current-password"
-                className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
 
@@ -114,10 +120,10 @@ function SignInContent() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-slate-700" />
+              <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-slate-900 px-2 text-slate-500">Or continue with</span>
+              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
             </div>
           </div>
 
@@ -125,7 +131,7 @@ function SignInContent() {
             onClick={handleGoogleSignIn}
             type="button"
             variant="outline"
-            className="w-full h-auto py-3 bg-slate-800/50 text-white font-semibold border border-slate-700 hover:border-slate-600 hover:bg-slate-800 flex items-center justify-center"
+            className="w-full h-auto py-3 bg-background text-foreground font-semibold border border-border hover:bg-accent flex items-center justify-center"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
               <path
@@ -148,12 +154,12 @@ function SignInContent() {
             Continue with Google
           </Button>
 
-          <div className="text-center text-sm text-slate-400">
-            <span className="text-slate-300">Need an account?</span>{" "}
+          <div className="text-center text-sm text-muted-foreground">
+            <span className="text-foreground">Need an account?</span>{" "}
             <button
               type="button"
               onClick={() => router.push("/auth/register")}
-              className="text-indigo-300 hover:text-indigo-200 font-semibold"
+              className="text-primary hover:text-primary/80 font-semibold"
             >
               Create account with email
             </button>

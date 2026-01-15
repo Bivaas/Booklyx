@@ -6,6 +6,7 @@ import { OTP } from "@/lib/models/otp";
 import { User } from "@/lib/models/user";
 import { hashEmail, hashString } from "@/lib/crypto";
 import { otpVerifySchema } from "@/lib/schemas/auth";
+import { assessRiskForEmailSending } from "@/lib/risk-scoring";
 // Note: No NextAuth interaction needed here
 
 export async function POST(request: Request) {
@@ -49,6 +50,16 @@ export async function POST(request: Request) {
       otpRecord.attempts += 1;
       await otpRecord.save();
 
+      // RISK SCORING: Increment risk score for failed OTP attempt
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        await User.findByIdAndUpdate(
+          existingUser._id,
+          { $inc: { riskScore: 5 } }, // +5 points for failed attempt
+          { new: true }
+        );
+      }
+
       const attemptsLeft = 3 - otpRecord.attempts;
       return NextResponse.json(
         {
@@ -71,11 +82,43 @@ export async function POST(request: Request) {
         email,
         emailVerified: true,
         verifiedAt: now,
+        accountCreatedAt: now, // ACCOUNT WARM-UP: Set creation time
+        riskScore: 0, // RISK SCORING: Initialize score
+        emailSendingDisabled: false,
+        failedOTPAttempts: 0,
       });
     } else {
       user.emailVerified = true;
       user.verifiedAt = now;
+      if (!user.accountCreatedAt) {
+        user.accountCreatedAt = now; // Set if not already set
+      }
       await user.save();
+    }
+
+    // RISK SCORING: Check if user can be sent emails
+    const riskAssessment = assessRiskForEmailSending(user.riskScore, user.emailSendingDisabled);
+    if (!riskAssessment.isAllowed) {
+      // Still verify but don't allow email-based operations
+      // Return success but flag it
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Email verified successfully",
+          code: "EMAIL_VERIFIED",
+          user: {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+            emailVerified: user.emailVerified,
+          },
+          _security: {
+            restricted: true,
+            reason: "Account requires security verification before email operations",
+          },
+        },
+        { status: 200 }
+      );
     }
 
     return NextResponse.json(

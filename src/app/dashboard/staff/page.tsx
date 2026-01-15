@@ -132,15 +132,15 @@ export default function StaffPage() {
   };
 
   return (
-    <div>
-      <div className="mb-8 flex items-center justify-between">
+    <div className="w-full">
+      <div className="mb-8 px-4 md:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Staff Members</h1>
-          <p className="text-gray-600 mt-2">Manage your team members</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Staff Members</h1>
+          <p className="text-muted-foreground mt-2">Manage your team members</p>
         </div>
         <Button
           onClick={() => setShowForm(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2 w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           Add Staff
@@ -148,22 +148,22 @@ export default function StaffPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
-          <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-          <p className="text-red-700">{error}</p>
+        <div className="mb-6 mx-4 md:mx-6 lg:mx-8 p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start space-x-3">
+          <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+          <p className="text-destructive">{error}</p>
         </div>
       )}
 
       {/* Add/Edit Form */}
       {showForm && (
-        <Card className="p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">
+        <Card className="p-4 md:p-6 mb-8 mx-4 md:mx-6 lg:mx-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+            <h2 className="text-lg md:text-xl font-bold text-foreground">
               {editingId ? "Edit Staff Member" : "Add New Staff Member"}
             </h2>
             <button
               onClick={resetForm}
-              className="p-1 hover:bg-gray-100 rounded-lg"
+              className="p-1 hover:bg-secondary rounded-lg self-start sm:self-auto"
             >
               <X className="h-5 w-5" />
             </button>
@@ -184,7 +184,7 @@ export default function StaffPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -230,15 +230,15 @@ export default function StaffPage() {
               />
             </div>
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button
                 type="submit"
                 disabled={submitting || !formData.name}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {submitting ? "Saving..." : editingId ? "Update Staff" : "Add Staff"}
               </Button>
-              <Button type="button" onClick={resetForm} variant="outline">
+              <Button type="button" onClick={resetForm} variant="outline" className="w-full sm:w-auto">
                 Cancel
               </Button>
             </div>
@@ -249,52 +249,54 @@ export default function StaffPage() {
       {/* Staff List */}
       {loading ? (
         <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading staff...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading staff...</p>
         </div>
       ) : staff.length === 0 ? (
-        <Card className="p-12 text-center">
-          <p className="text-gray-600 mb-4">No staff members yet</p>
+        <Card className="p-8 md:p-12 mx-4 md:mx-6 lg:mx-8 text-center">
+          <p className="text-muted-foreground mb-4">No staff members yet</p>
           <Button
             onClick={() => setShowForm(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Your First Staff Member
           </Button>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 px-4 md:px-6 lg:px-8">
           {staff.map((member) => (
-            <Card key={member._id} className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">
+            <Card key={member._id} className="p-4 md:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-semibold text-foreground">
                     {member.name}
                   </h3>
                   {member.specialization && (
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       {member.specialization}
                     </p>
                   )}
-                  <div className="flex flex-col gap-2 mt-3 text-sm text-gray-600">
-                    {member.email && <span>📧 {member.email}</span>}
+                  <div className="flex flex-col gap-1 mt-3 text-sm text-muted-foreground">
+                    {member.email && <span className="break-all">📧 {member.email}</span>}
                     {member.phone && <span>📞 {member.phone}</span>}
                   </div>
                 </div>
 
-                <div className="flex gap-2 ml-4 flex-shrink-0">
+                <div className="flex gap-2 flex-shrink-0 w-full sm:w-auto">
                   <button
                     onClick={() => handleEdit(member)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="flex-1 sm:flex-none p-2 hover:bg-secondary rounded-lg transition"
+                    title="Edit"
                   >
-                    <Edit2 className="h-4 w-4 text-blue-600" />
+                    <Edit2 className="h-4 w-4 text-blue-600 mx-auto" />
                   </button>
                   <button
                     onClick={() => handleDelete(member._id)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="flex-1 sm:flex-none p-2 hover:bg-secondary rounded-lg transition"
+                    title="Delete"
                   >
-                    <Trash2 className="h-4 w-4 text-red-600" />
+                    <Trash2 className="h-4 w-4 text-red-600 mx-auto" />
                   </button>
                 </div>
               </div>

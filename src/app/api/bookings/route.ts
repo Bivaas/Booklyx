@@ -4,12 +4,14 @@ import { Booking, BookingStatus } from "@/lib/models/booking";
 import { Service } from "@/lib/models/service";
 import { Staff } from "@/lib/models/staff";
 import { Business, BusinessStatus } from "@/lib/models/business";
+import { User } from "@/lib/models/user";
 import { bookingRequestSchema } from "@/lib/schemas/booking";
 import { sendBookingConfirmation, sendBookingNotificationToOwner } from "@/lib/notifications";
 import { hashEmail } from "@/lib/crypto";
 import { checkBookingRateLimit, getClientIP } from "@/lib/rate-limit";
 import { checkIPBookingLimit } from "@/lib/ip-heuristics";
 import { validateUserForBooking } from "@/lib/booking-verification";
+import { checkAccountWarmup, getWarmupErrorMessage } from "@/lib/account-warm-up";
 import { auth } from "@/lib/auth";
 
 // Add CORS and security headers for API response
@@ -65,6 +67,18 @@ export async function POST(request: Request) {
         { error: validation.error },
         { status: 403 }
       );
+    }
+
+    // ACCOUNT WARM-UP CHECK: Verify account is at least 15 minutes old
+    const user = await User.findOne({ email: data.customerEmail });
+    if (user) {
+      const warmupCheck = checkAccountWarmup(user.accountCreatedAt, user.emailVerified);
+      if (!warmupCheck.allowed) {
+        return NextResponse.json(
+          { error: getWarmupErrorMessage(warmupCheck.minutesRemaining) },
+          { status: 403 }
+        );
+      }
     }
 
     // Verify business exists and is APPROVED

@@ -21,9 +21,15 @@ export function Sidebar({ items, className }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className={cn("w-64 bg-card/50 backdrop-blur-sm border-r border-border/60 h-screen overflow-y-auto sticky top-0", className)}>
-      <div className="p-6">
-        <Link href="/" className="flex items-center gap-2 mb-8 hover:opacity-80 transition-opacity">
+    <aside className={cn("w-full md:w-64 bg-card/50 backdrop-blur-sm border-r border-border/60 md:h-screen overflow-y-auto sticky top-0 md:top-16", className)}>
+      <div className="p-4 md:p-6">
+        <Link 
+          href="/" 
+          className="hidden md:flex items-center gap-2 mb-8 hover:opacity-80 transition-opacity"
+          onClick={(e) => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
           <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center shadow-sm">
             <svg className="w-5 h-5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -41,7 +47,7 @@ export function Sidebar({ items, className }: SidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                  "relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 w-full",
                   isActive
                     ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md"
                     : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"

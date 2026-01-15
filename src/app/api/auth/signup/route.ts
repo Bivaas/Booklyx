@@ -7,12 +7,15 @@ import { User } from "@/lib/models/user";
 import { generateOTP, hashEmail, hashString } from "@/lib/crypto";
 import { checkOTPRateLimit, getClientIP } from "@/lib/rate-limit";
 import { sendOTPEmail } from "@/lib/notifications";
+import { validateEmailDomain } from "@/lib/email-security";
+import { validateSignupLimits } from "@/lib/signup-rate-limit";
 import env from "@/lib/env";
 import crypto from "crypto";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
+  honeypot: z.string().optional(), // Honeypot field - should always be empty
 });
 
 /**
@@ -25,6 +28,15 @@ function generateDeviceFingerprint(userAgent: string, ipAddress: string): string
     .digest("hex");
 }
 
+/**
+ * Non-blocking delay to slow down bot attacks
+ * 3-5 seconds after validation checks
+ */
+async function addArtificialDelay(): Promise<void> {
+  const delayMs = 3000 + Math.random() * 2000; // 3-5 seconds
+  await new Promise(resolve => setTimeout(resolve, delayMs));
+}
+
 export async function POST(request: Request) {
   try {
     const clientIP = getClientIP(request);
@@ -32,25 +44,65 @@ export async function POST(request: Request) {
     const deviceFingerprint = generateDeviceFingerprint(userAgent, clientIP);
 
     const body = await request.json().catch(() => ({}));
-    const { email, password } = signupSchema.parse(body);
+    const { email, password, honeypot } = signupSchema.parse(body);
     const emailHash = hashEmail(email);
 
-    // Strict rate limiting: 1 OTP per email per device per network per 24 hours
-    const allowed = await checkOTPRateLimit(email, clientIP, deviceFingerprint);
-    if (!allowed) {
+    // HONEYPOT CHECK: Reject if honeypot field is filled
+    // Return generic success to confuse bots
+    if (honeypot && honeypot.trim().length > 0) {
       return NextResponse.json(
         {
-          error: "Too many signup attempts. Please try again in 15 minutes.",
-          code: "RATE_LIMITED",
+          success: true,
+          message: "OTP sent to your email",
+          expiresIn: 300,
+          code: "OTP_SENT",
         },
-        { status: 429 }
+        { status: 200 }
+      );
+    }
+
+    // DISPOSABLE EMAIL CHECK: Block before rate limiting
+    const emailDomainError = validateEmailDomain(email);
+    if (emailDomainError) {
+      // Log attempt but return generic error
+      return NextResponse.json(
+        {
+          error: "Unable to process signup. Please try again.",
+          code: "SIGNUP_FAILED",
+        },
+        { status: 400 }
+      );
+    }
+
+    // SIGNUP RATE LIMITING (Pre-OTP): Max 1 per device, max 2 per IP per 24h
+    if (!validateSignupLimits(deviceFingerprint, clientIP)) {
+      // Block silently - return generic error
+      return NextResponse.json(
+        {
+          error: "Unable to process signup. Please try again.",
+          code: "SIGNUP_FAILED",
+        },
+        { status: 400 }
+      );
+    }
+
+    // STRICT OTP RATE LIMITING: 1 OTP per email per device per network per 24 hours
+    const allowed = await checkOTPRateLimit(email, clientIP, deviceFingerprint);
+    if (!allowed) {
+      // Block silently
+      return NextResponse.json(
+        {
+          error: "Unable to process signup. Please try again.",
+          code: "SIGNUP_FAILED",
+        },
+        { status: 400 }
       );
     }
 
     if (!env.RESEND_API_KEY || !env.EMAIL_FROM) {
       return NextResponse.json(
-        { error: "Email service not configured" },
-        { status: 500 }
+        { error: "Service temporarily unavailable. Please try again." },
+        { status: 503 }
       );
     }
 
@@ -78,15 +130,20 @@ export async function POST(request: Request) {
     if (existingOTP) {
       const timeSinceCreation = Date.now() - existingOTP.createdAt.getTime();
       if (timeSinceCreation < 60000) {
+        // Block silently
         return NextResponse.json(
           {
-            error: "OTP already sent. Please wait a minute before requesting a new one.",
-            code: "OTP_RECENTLY_SENT",
+            error: "Unable to process signup. Please try again.",
+            code: "SIGNUP_FAILED",
           },
-          { status: 429 }
+          { status: 400 }
         );
       }
     }
+
+    // ARTIFICIAL OTP DELAY: 3-5 seconds (non-blocking)
+    // Applied AFTER all validation checks
+    await addArtificialDelay();
 
     // Generate and send OTP
     const otp = generateOTP();
@@ -103,12 +160,24 @@ export async function POST(request: Request) {
       createdAt: new Date(),
     });
 
-    // Send OTP email
-    await sendOTPEmail(email, otp).catch((error) => {
+    // Send OTP email with error handling
+    try {
+      await sendOTPEmail(email, otp);
+    } catch (emailError) {
+      // EMAIL FAIL-SAFE: If email send fails, return maintenance message
       if (process.env.NODE_ENV === "development") {
-        console.error("OTP email send failed:", error);
+        console.error("OTP email send failed:", emailError);
       }
-    });
+      
+      // Don't reveal the failure, return generic error
+      return NextResponse.json(
+        { 
+          error: "Service temporarily unavailable. Please try again.",
+          code: "SERVICE_UNAVAILABLE"
+        },
+        { status: 503 }
+      );
+    }
 
     // Development-only: Log OTP for testing (remove in production)
     if (process.env.NODE_ENV === "development" && !env.RESEND_API_KEY) {
@@ -128,20 +197,17 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: error.issues[0]?.message || "Invalid request",
+          error: "Invalid request",
           code: "VALIDATION_ERROR",
         },
         { status: 400 }
       );
     }
 
-    if (process.env.NODE_ENV === "development") {
-      console.error("Signup error");
-    }
-
+    console.error("Signup error (development only)");
     return NextResponse.json(
-      { error: "Failed to process signup request", code: "ERROR" },
-      { status: 500 }
+      { error: "Service temporarily unavailable. Please try again." },
+      { status: 503 }
     );
   }
 }
