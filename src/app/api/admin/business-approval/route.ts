@@ -25,11 +25,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // TODO: Check if user has ADMIN role
-    // For now, we'll check against a hardcoded admin email or implement proper role check
-    // You should implement role checking based on your User model
-    const isAdmin = await checkAdminRole(session.user.email);
-    if (!isAdmin) {
+    await connectDb();
+    
+    // Strict Role Check
+    const { User, Role } = await import("@/lib/models/user");
+    const adminUser = await User.findOne({ email: session.user.email });
+
+    if (!adminUser || adminUser.role !== Role.ADMIN) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

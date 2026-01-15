@@ -119,12 +119,18 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
+        // @ts-ignore - user type extension
+        token.role = user.role;
+        // @ts-ignore - user type extension
+        token.emailVerified = user.emailVerified;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id;
+        (session.user as any).role = token.role;
+        (session.user as any).emailVerified = token.emailVerified;
         // Note: businessId will be fetched on-demand in API routes to avoid connection issues
       }
       return session;

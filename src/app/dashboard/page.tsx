@@ -27,40 +27,67 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
-  const [updating, setUpdating] = useState<string | null>(null);
   const [businessId, setBusinessId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchBusinessId();
-  }, [session]);
-
-  useEffect(() => {
-    if (businessId) {
-      fetchBookings();
-    }
-  }, [filter, businessId]);
-
-  const fetchBusinessId = async () => {
-    try {
-      const response = await fetch("/api/business");
-      if (response.ok) {
-        const data = await response.json();
-        if (data.business?._id) {
-          setBusinessId(data.business._id);
-        }
-      } else if (response.status === 404) {
-        setError("No business found. Please create a business in settings.");
-        setLoading(false);
+    if (session?.user) {
+      if (session.user.role === 'owner') {
+        fetchBusinessAndBookings();
+      } else {
+        // Customer or Admin
+        fetchUserBookings();
       }
-    } catch (err) {
-      console.error("Failed to fetch business:", err);
+    }
+  }, [session, filter]);
+
+  const fetchBusinessAndBookings = async () => {
+    try {
+      setLoading(true);
+      // 1. Get Business ID
+      const busRes = await fetch("/api/business");
+      if (!busRes.ok) throw new Error("Could not fetch business profile");
+      const busData = await busRes.json();
+      const bId = busData.business?._id;
+      
+      if (!bId) {
+        // No business yet?
+        setLoading(false);
+        return; 
+      }
+      setBusinessId(bId);
+
+      // 2. Get Bookings
+      const bookRes = await fetch(`/api/bookings?businessId=${bId}`);
+      if (!bookRes.ok) throw new Error("Failed to fetch bookings");
+      const bookData = await bookRes.json();
+      setBookings(bookData.bookings || []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchBookings = async () => {
+  const fetchUserBookings = async () => {
     try {
       setLoading(true);
-      setError(null);
+      const res = await fetch("/api/bookings"); // No params = My Bookings
+      if (!res.ok) throw new Error("Failed to fetch your bookings");
+      const data = await res.json();
+      setBookings(data.bookings || []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleStatusUpdate = async (bookingId: string, newStatus: string) => {
+    // Determine update URL based on context or just use generic booking update
+    // Assuming backend handles auth check ownership
+    // ...
+  };
+
       
       if (!businessId) {
         setBookings([]);
@@ -70,19 +97,6 @@ export default function DashboardPage() {
 
       const query = filter !== "all" ? `?businessId=${businessId}&status=${filter}` : `?businessId=${businessId}`;
       const response = await fetch(`/api/bookings${query}`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch bookings");
-      }
-
-      const data = await response.json();
-      setBookings(data.bookings || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load bookings");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleStatusChange = async (bookingId: string, newStatus: string) => {
     try {
