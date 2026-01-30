@@ -54,7 +54,35 @@ export default function Home() {
     }
   };
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      {/* Schema.org LocalBusiness Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "name": "Booklyx",
+            "image": "https://booklyx.vercel.app/og-image.png",
+            "url": "https://booklyx.vercel.app",
+            "description": "Booklyx is a free booking platform for local businesses. Manage appointments, staff, and services with ease. Streamline your business with Booklyx – the best solution for local business booking and free online appointment management.",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "NP"
+            },
+            "areaServed": "Worldwide",
+            "keywords": [
+              "Booklyx",
+              "Free booking",
+              "Local Business Booking",
+              "Online booking",
+              "Appointment scheduler",
+              "Business management"
+            ]
+          })
+        }}
+      />
+      <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="border-b border-border/60 bg-card/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -121,15 +149,14 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary mb-6">
-              ✨ Modern Booking Platform
+              ✨ Free Local Business Booking Platform
             </span>
           </motion.div>
-          <h2 className="text-6xl font-bold text-foreground mb-6 tracking-tight leading-tight">
-            Professional Booking
-            <span className="block bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Management</span>
-          </h2>
+          <h1 className="text-6xl font-bold text-foreground mb-6 tracking-tight leading-tight">
+            Booklyx: <span className="block bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Free Booking for Local Businesses</span>
+          </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            A developer-grade booking system designed for reliability, clarity, and seamless integration. Built for professionals who value precision.
+            Booklyx is the ultimate <strong>free booking</strong> platform for <strong>local businesses</strong>. Manage appointments, staff, and services with ease. Streamline your business with Booklyx – the best solution for <strong>local business booking</strong> and <strong>free online appointment management</strong>.
           </p>
           <div className="flex justify-center gap-3 flex-wrap mt-8">
             <Link href="/auth/signin">
@@ -149,8 +176,8 @@ export default function Home() {
       {/* Businesses Listing Section */}
       <section id="businesses" className="max-w-6xl mx-auto px-6 py-20 border-t border-border/60">
         <div className="mb-12 text-center">
-          <h3 className="text-3xl font-bold text-foreground mb-3 tracking-tight">Available Businesses</h3>
-          <p className="text-muted-foreground text-lg">Browse and book appointments with approved businesses</p>
+          <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">Book Local Businesses Instantly</h2>
+          <p className="text-muted-foreground text-lg">Browse and book appointments with approved businesses using Booklyx – the free booking platform for local business owners and customers.</p>
         </div>
 
         {loading ? (
@@ -195,8 +222,8 @@ export default function Home() {
       {/* Features Grid */}
       <section id="features" className="max-w-6xl mx-auto px-6 py-24">
         <div className="text-center mb-16">
-          <h3 className="text-3xl font-bold text-foreground mb-4">Everything you need</h3>
-          <p className="text-muted-foreground text-lg">Powerful features designed for modern businesses</p>
+          <h2 className="text-3xl font-bold text-foreground mb-4">Everything You Need for Free Booking</h2>
+          <p className="text-muted-foreground text-lg">Powerful features designed for local businesses, professionals, and service providers. Booklyx makes <strong>free booking</strong> and <strong>local business booking</strong> effortless.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Feature 1 */}
@@ -249,9 +276,9 @@ export default function Home() {
       {/* Capabilities Section */}
       <section id="capabilities" className="max-w-6xl mx-auto px-6 py-24 border-t border-border/60">
         <div className="mb-16 text-center">
-          <h3 className="text-3xl font-bold text-foreground mb-4">Built for Enterprise</h3>
+          <h2 className="text-3xl font-bold text-foreground mb-4">Built for Local Business Success</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Designed with the discipline and precision expected in professional environments. Security-first, scalability-ready.
+            Booklyx is designed for <strong>local businesses</strong> and professionals who want to grow with a secure, scalable, and modern <strong>booking platform</strong>.
           </p>
         </div>
 
@@ -278,9 +305,9 @@ export default function Home() {
       {/* CTA Section */}
       <section id="cta" className="max-w-4xl mx-auto px-6 py-24">
         <div className="bg-gradient-to-br from-secondary to-secondary/50 dark:from-slate-800 dark:to-slate-700 text-foreground rounded-2xl p-12 text-center shadow-xl border border-border/40 dark:border-border/60">
-          <h3 className="text-3xl font-bold mb-4">Ready to streamline your bookings?</h3>
+          <h2 className="text-3xl font-bold mb-4">Ready to grow your local business with free booking?</h2>
           <p className="mb-8 text-muted-foreground text-lg">
-            Set up your booking system in minutes. No credit card required.
+            Set up your <strong>free booking</strong> system in minutes with Booklyx. No credit card required. Empower your <strong>local business</strong> today!
           </p>
           <div className="flex justify-center gap-3 flex-wrap">
             <Link href="/auth/signin">
@@ -366,6 +393,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }
