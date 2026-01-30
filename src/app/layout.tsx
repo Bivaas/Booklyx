@@ -61,6 +61,32 @@ export default function RootLayout({
       <head>
         <ThemeScript />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        {/* Google Search Console Verification */}
+        <meta name="google-site-verification" content="IlTuTqVA6pi_rgjh0scCGvJdJFIOaDD59IW7xRv1p2I" />
+        {/* SEO Meta Tags */}
+        <meta name="keywords" content="Booklyx, Free booking, Local Business Booking, online booking, appointment, business management, booking software, appointment scheduler, free business booking, local business, appointment management, booking platform, business automation, service booking, staff scheduling, calendar, SaaS booking, business growth, customer booking, instant booking, modern booking, professional booking, business appointments" />
+        <meta name="description" content="Booklyx is the ultimate free booking platform for local businesses. Manage appointments, staff, and services with ease. Streamline your business with Booklyx – the best solution for local business booking and free online appointment management." />
+        {/* Schema.org Structured Data */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Booklyx",
+          "url": "https://booklyx.vercel.app",
+          "description": "Booklyx is the ultimate free booking platform for local businesses. Manage appointments, staff, and services with ease. Streamline your business with Booklyx – the best solution for local business booking and free online appointment management.",
+          "keywords": [
+            "Booklyx",
+            "Free booking",
+            "Local Business Booking",
+            "Online booking",
+            "Appointment scheduler",
+            "Business management"
+          ],
+          "publisher": {
+            "@type": "Organization",
+            "name": "Booklyx",
+            "url": "https://booklyx.vercel.app"
+          }
+        }) }} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
