@@ -4,7 +4,6 @@ import React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import { Calendar } from "lucide-react";
 
 interface SidebarItem {
   href: string;
@@ -30,9 +29,7 @@ export function Sidebar({ items, className }: SidebarProps) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         >
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center shadow-sm">
-            <Calendar className="w-5 h-5 text-primary-foreground" />
-          </div>
+          <img src="/logo.png" alt="Booklyx" className="w-8 h-8 rounded-lg object-contain" />
           <h2 className="text-lg font-semibold text-foreground tracking-tight">Booklyx</h2>
         </Link>
 

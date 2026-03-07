@@ -74,24 +74,50 @@ export async function POST(request: Request) {
       }
     }
 
-    // 3. Verify OTP (must be verified in previous request)
-    // In a real app, you would check if the OTP was verified for this email
-    // For now, we'll verify the OTP here
+    // 3. Verify OTP against the submitted code
     const { OTP } = await import("@/lib/models/otp");
     const { hashEmail, hashString } = await import("@/lib/crypto");
 
     const emailHash = hashEmail(newEmail);
     const otpRecord = await OTP.findOne({
       emailHash,
-      verified: true,
+      verified: false,
       expiresAt: { $gt: new Date() },
     });
 
     if (!otpRecord) {
       return NextResponse.json(
         {
-          error: "Email verification required. Please verify your new email with OTP.",
-          code: "OTP_NOT_VERIFIED",
+          error: "No pending OTP found. Please request a new verification code for the new email.",
+          code: "OTP_NOT_FOUND",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check max attempts
+    if (otpRecord.attempts >= 3) {
+      await OTP.deleteOne({ _id: otpRecord._id });
+      return NextResponse.json(
+        {
+          error: "Maximum verification attempts exceeded. Please request a new OTP.",
+          code: "MAX_ATTEMPTS_EXCEEDED",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Verify the submitted OTP code against the stored hash
+    const hashedSubmittedOTP = hashString(otpCode);
+    if (hashedSubmittedOTP !== otpRecord.hashedOTP) {
+      otpRecord.attempts += 1;
+      await otpRecord.save();
+      const attemptsLeft = 3 - otpRecord.attempts;
+      return NextResponse.json(
+        {
+          error: `Invalid OTP. ${attemptsLeft} attempt${attemptsLeft !== 1 ? "s" : ""} remaining.`,
+          code: "INVALID_OTP",
+          attemptsLeft,
         },
         { status: 400 }
       );
@@ -112,9 +138,8 @@ export async function POST(request: Request) {
     business.lastEmailChangeAt = new Date();
     await business.save();
 
-    // Mark OTP as used
-    otpRecord.verified = false;
-    await otpRecord.save();
+    // Delete OTP record to enforce one-time use
+    await OTP.deleteOne({ _id: otpRecord._id });
 
     // Send notification email (async)
     sendBusinessEmailChangeNotification(oldEmail, newEmail, business.name).catch(

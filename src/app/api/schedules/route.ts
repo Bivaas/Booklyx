@@ -19,7 +19,7 @@ const scheduleSchema = z.object({
 export async function GET(request: Request) {
   try {
     const session = await auth();
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -28,8 +28,8 @@ export async function GET(request: Request) {
 
     await connectDb();
 
-    // Find user's business
-    const business = await Business.findOne({ email: session.user.email });
+    // Find user's business by ownerId
+    const business = await Business.findOne({ ownerId: session.user.id });
     if (!business) {
       return NextResponse.json({ error: "Business not found" }, { status: 404 });
     }
@@ -72,7 +72,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await auth();
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     // Verify business exists and user owns it
     const business = await Business.findOne({
       _id: data.businessId,
-      email: session.user.email,
+      ownerId: session.user.id,
     });
 
     if (!business) {

@@ -113,7 +113,8 @@ export default function BusinessPage() {
       }
 
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      // Refetch saved state from server to reflect reality and prevent re-submission of stale data
+      await fetchBusinessData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
     } finally {
@@ -166,9 +167,18 @@ export default function BusinessPage() {
       )}
 
       {success && (
-        <div className="mb-6 mx-4 md:mx-6 lg:mx-8 p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-start space-x-3">
+        <div className="mb-6 mx-4 md:mx-6 lg:mx-8 p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-start gap-3">
           <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-          <p className="text-green-600 dark:text-green-400">Business settings saved successfully!</p>
+          <div>
+            <p className="font-semibold text-green-600 dark:text-green-400">
+              {businessExists ? "Business settings updated!" : "Business application submitted!"}
+            </p>
+            <p className="text-sm text-green-600/80 dark:text-green-400/80 mt-0.5">
+              {businessExists
+                ? "Your changes have been saved."
+                : "Your business has been submitted for admin review. You'll receive an email once it's approved."}
+            </p>
+          </div>
         </div>
       )}
 

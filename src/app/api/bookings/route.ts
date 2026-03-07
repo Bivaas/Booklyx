@@ -110,15 +110,14 @@ export async function POST(request: Request) {
     const startTime = new Date(data.startTime);
     const endTime = new Date(startTime.getTime() + service.duration * 60000);
 
-    // Check for conflicts (prevent race conditions)
+    // Check for conflicts using standard overlap condition:
+    // Two intervals overlap iff existing.startTime < newEnd AND existing.endTime > newStart
     const existingBooking = await Booking.findOne({
       businessId: data.businessId,
       staffId: data.staffId || null,
       status: { $ne: BookingStatus.CANCELLED },
-      $or: [
-        { startTime: { $lt: endTime, $gte: startTime } },
-        { endTime: { $gt: startTime, $lte: endTime } },
-      ],
+      startTime: { $lt: endTime },
+      endTime: { $gt: startTime },
     });
 
     if (existingBooking) {

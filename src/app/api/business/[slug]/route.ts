@@ -26,12 +26,12 @@ export async function GET(
     const session = await auth();
 
     // Check if this is an authenticated request for business by ID
-    if (session?.user?.email) {
+    if (session?.user?.id) {
       await connectDb();
       
       // Try to find by ID first (for owner dashboard)
       const businessById = await Business.findById(slug).catch(() => null);
-      if (businessById && businessById.email === session.user.email) {
+      if (businessById && businessById.ownerId === session.user.id) {
         return NextResponse.json({
           business: {
             _id: businessById._id.toString(),
@@ -122,7 +122,7 @@ export async function PATCH(
     const { slug } = await params;
     const session = await auth();
     
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -131,10 +131,10 @@ export async function PATCH(
 
     await connectDb();
 
-    // Find the business by ID and verify ownership
+    // Find the business by ID and verify ownership via ownerId
     const business = await Business.findOne({
       _id: slug,
-      email: session.user.email,
+      ownerId: session.user.id,
     });
 
     if (!business) {

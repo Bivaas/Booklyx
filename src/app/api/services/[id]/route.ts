@@ -23,7 +23,7 @@ export async function PATCH(
     const { id } = await params;
     const session = await auth();
     
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -38,10 +38,10 @@ export async function PATCH(
       return NextResponse.json({ error: "Service not found" }, { status: 404 });
     }
 
-    // Verify user owns the business
+    // Verify user owns the business via ownerId
     const business = await Business.findOne({
       _id: service.businessId,
-      email: session.user.email,
+      ownerId: session.user.id,
     });
 
     if (!business) {
@@ -99,7 +99,7 @@ export async function DELETE(
     const { id } = await params;
     const session = await auth();
     
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -111,10 +111,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Service not found" }, { status: 404 });
     }
 
-    // Verify user owns the business
+    // Verify user owns the business via ownerId
     const business = await Business.findOne({
       _id: service.businessId,
-      email: session.user.email,
+      ownerId: session.user.id,
     });
 
     if (!business) {

@@ -13,6 +13,21 @@ const approvalSchema = z.object({
 });
 
 /**
+ * Unified admin role check: DB role first, env fallback
+ */
+async function checkAdminRole(email: string): Promise<boolean> {
+  try {
+    await connectDb();
+    const user = await User.findOne({ email });
+    if (user?.role === Role.ADMIN) return true;
+  } catch {
+    // fall through to env check
+  }
+  const adminEmails = process.env.ADMIN_EMAILS?.split(",").map(e => e.trim()) || [];
+  return adminEmails.includes(email);
+}
+
+/**
  * POST /api/admin/business-approval
  * Approve or suspend a business (Admin only)
  */
@@ -20,17 +35,12 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    // Check admin authorization
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDb();
-    
-    // Strict Role Check
-    const adminUser = await User.findOne({ email: session.user.email });
-
-    if (!adminUser || adminUser.role !== Role.ADMIN) {
+    const isAdmin = await checkAdminRole(session.user.email);
+    if (!isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -137,26 +147,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-}
-
-/**
- * Check if user has admin role
- * TODO: Implement proper role checking from User model
- */
-async function checkAdminRole(email: string): Promise<boolean> {
-  // Option 1: Check against environment variable for admin emails
-  const adminEmails = process.env.ADMIN_EMAILS?.split(",") || [];
-  if (adminEmails.includes(email)) {
-    return true;
-  }
-
-  // Option 2: Check User model for role (if you want to query DB)
-  // Uncomment and implement if needed:
-  /*
-  const { User } = await import("@/lib/models/user");
-  const user = await User.findOne({ email });
-  return user?.role === Role.ADMIN;
-  */
-
-  return false;
 }

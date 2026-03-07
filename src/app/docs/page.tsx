@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Calendar, ArrowLeft, CheckCircle, Shield, Users, Mail, Clock, AlertCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, Shield, Users, Mail, Clock, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function DocsPage() {
@@ -14,9 +14,7 @@ export default function DocsPage() {
       <nav className="border-b border-border/60 bg-card/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center shadow-sm">
-              <Calendar className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img src="/logo.png" alt="Booklyx" className="w-8 h-8 rounded-lg object-contain" />
             <h1 className="text-lg font-semibold text-foreground tracking-tight">Booklyx</h1>
           </Link>
           <div className="flex items-center gap-3">
@@ -61,7 +59,7 @@ export default function DocsPage() {
           <Card className="p-8">
             <div className="flex items-start gap-4 mb-4">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-6 h-6 text-primary" />
+                <CheckCircle className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-2">Introduction to Booklyx</h2>
@@ -350,7 +348,7 @@ export default function DocsPage() {
                 <ul className="space-y-2 text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-primary mt-1">•</span>
-                    <span>Booking limits apply to prevent spam (1 booking per user per business per day)</span>
+                    <span>Booking limits: up to 2 bookings per user per day across all businesses</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary mt-1">•</span>
@@ -386,7 +384,7 @@ export default function DocsPage() {
               <Link href="/auth/register">
                 <Button size="lg" className="gap-2">
                   Create Account
-                  <Calendar className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 rotate-180" />
                 </Button>
               </Link>
               <Link href="/">

@@ -14,7 +14,7 @@ import {
   CheckCircle,
   Clock,
   DollarSign,
-  Calendar,
+  Globe,
   Phone,
   MapPin,
   ArrowLeft,
@@ -246,9 +246,7 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
       <nav className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-gradient-to-br from-primary to-primary/80 rounded-md flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-primary-foreground" />
-            </div>
+            <img src="/logo.png" alt="Booklyx" className="w-7 h-7 rounded-md object-contain" />
             <span className="text-sm font-semibold text-foreground">Booklyx</span>
           </Link>
           <ThemeToggle />
@@ -267,7 +265,7 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
             <div className="p-6">
               <div className="flex items-start gap-4">
                 {business.logo && (
-                  <img src={business.logo} alt="" className="h-12 w-auto object-contain flex-shrink-0" />
+                  <img src={business.logo} alt={`${business.name} logo`} className="h-12 w-auto object-contain flex-shrink-0" />
                 )}
                 <div className="min-w-0">
                   <h1 className="text-2xl font-bold text-foreground">{business.name}</h1>
@@ -280,6 +278,9 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                     )}
                     {business.address && (
                       <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {business.address}</span>
+                    )}
+                    {business.timezone && (
+                      <span className="flex items-center gap-1"><Globe className="w-3 h-3" /> {business.timezone.replace(/_/g, " ")}</span>
                     )}
                   </div>
                 </div>
@@ -388,7 +389,7 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                   {/* Step 3: Time */}
                   {selectedDate && selectedServiceId && (
                     <fieldset>
-                      <legend className="text-sm font-semibold text-foreground mb-2">3. Choose a time</legend>
+                      <legend className="text-sm font-semibold text-foreground mb-2">3. Choose a time{business.timezone ? ` (${business.timezone.replace(/_/g, " ")})` : ""}</legend>
                       {availableSlots.length > 0 ? (
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                           {availableSlots.slice(0, 16).map((slot, idx) => (

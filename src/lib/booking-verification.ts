@@ -87,16 +87,16 @@ export async function getUserBookingCountToday(
 }
 
 /**
- * Check if user can book today (max 1 booking per day per user)
+ * Check if user can book today (max 2 bookings per day per user)
  * @param email - User email
  * @returns true if allowed, false if limit exceeded
  */
 export async function canUserBookToday(
   email: string
 ): Promise<boolean> {
-  // EMAIL RATE LIMITING: Max 1 booking per day per user
+  // EMAIL RATE LIMITING: Max 2 bookings per day per user
   const count = await getUserDailyBookingCount(email);
-  return count < 1; // Max 1 per day
+  return count < 2; // Max 2 per day
 }
 
 /**
@@ -104,7 +104,7 @@ export async function canUserBookToday(
  * Consolidated check for all post-verification rules
  * 
  * BOOKING LIMITS:
- * - Max 1 booking per day per normal user (email rate limiting)
+ * - Max 2 bookings per day per user (email rate limiting)
  * - Email must be verified
  * - Business must be approved
  * 
@@ -135,12 +135,12 @@ export async function validateUserForBooking(
       };
     }
 
-    // 3. Check daily booking limit (1 per day per user)
+    // 3. Check daily booking limit (2 per day per user)
     const dailyCount = await getUserDailyBookingCount(email);
-    if (dailyCount >= 1) {
+    if (dailyCount >= 2) {
       return {
         valid: false,
-        error: "You have reached the maximum number of bookings for today. Maximum: 1 booking per day",
+        error: "You have reached the maximum number of bookings for today. Maximum: 2 bookings per day",
       };
     }
 

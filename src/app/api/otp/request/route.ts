@@ -1,3 +1,13 @@
+/**
+ * @deprecated This route is not used by any active flow.
+ * Active OTP routes:
+ *   - /api/auth/signup (registration OTP request)
+ *   - /api/auth/signup/verify (registration OTP verify)
+ *   - /api/auth/request-otp (general OTP request)
+ *   - /api/auth/verify-otp (general OTP verify)
+ * This route can be safely removed in a future cleanup.
+ */
+
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDb } from "@/lib/db";

@@ -10,15 +10,15 @@ export async function GET(request: Request) {
   try {
     const session = await auth();
     
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectDb();
 
-    // Find business by owner's email
+    // Find business by ownerId (authoritative ownership)
     const business = await Business.findOne({
-      email: session.user.email,
+      ownerId: session.user.id,
     });
 
     if (!business) {
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
     
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
 
     // Check if user already has a business
     const existingBusiness = await Business.findOne({
-      email: session.user.email,
+      ownerId: session.user.id,
     });
 
     if (existingBusiness) {

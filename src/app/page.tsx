@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
-  Calendar,
   Users,
   Bell,
   ArrowRight,
@@ -20,7 +19,7 @@ import {
   ChevronRight,
   Phone,
   MapPin,
-  Sparkles,
+  CalendarCheck,
   LayoutDashboard,
   UserCheck,
 } from "lucide-react";
@@ -39,9 +38,7 @@ interface Business {
 
 function BrandMark({ className = "w-8 h-8" }: { className?: string }) {
   return (
-    <div className={`${className} bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-sm`}>
-      <Calendar className="w-[60%] h-[60%] text-primary-foreground" />
-    </div>
+    <img src="/logo.png" alt="Booklyx" className={`${className} rounded-lg object-contain`} />
   );
 }
 
@@ -146,8 +143,8 @@ export default function Home() {
             transition={{ duration: 0.5 }}
           >
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/8 border border-primary/15 text-xs font-medium text-primary mb-6">
-              <Sparkles className="w-3.5 h-3.5" />
-              Appointment scheduling, simplified
+              <CalendarCheck className="w-3.5 h-3.5" />
+              Free booking management for service businesses
             </span>
           </motion.div>
 
@@ -157,10 +154,10 @@ export default function Home() {
             animate={reduced ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            Your booking page,
+            A clean booking page
             <br />
             <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              ready in minutes
+              for your business
             </span>
           </motion.h1>
 
@@ -170,8 +167,9 @@ export default function Home() {
             animate={reduced ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Set up services, add your team, define your availability, and share a
-            clean booking link with your customers. No clutter, no cost.
+            Register your business, add services and staff, set your availability,
+            and share a booking link with your customers. Reviewed by our team before
+            going live.
           </motion.p>
 
           <motion.div
@@ -180,7 +178,7 @@ export default function Home() {
             animate={reduced ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <Link href="/auth/register">
+            <Link href={session?.user ? "/dashboard/business" : "/auth/register"}>
               <Button size="lg" className="gap-2 w-full sm:w-auto">
                 Create your booking page
                 <ArrowRight className="w-4 h-4" />
@@ -204,7 +202,7 @@ export default function Home() {
               How it works
             </p>
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center mb-14 tracking-tight">
-              Two sides, one platform
+              Two paths, one platform
             </h2>
           </Reveal>
 
@@ -220,10 +218,10 @@ export default function Home() {
                 </div>
                 <ol className="space-y-3">
                   {[
-                    "Create an account and register your business",
-                    "Add services, staff, and set your schedule",
-                    "Submit for approval — reviewed by our team",
-                    "Share your booking link and accept appointments",
+                    "Create a verified account with email OTP",
+                    "Register your business and add services, staff, and schedules",
+                    "Submit for admin review — we check every listing",
+                    "Once approved, share your booking link and start accepting appointments",
                   ].map((step, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
                       <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center mt-0.5">
@@ -247,10 +245,10 @@ export default function Home() {
                 </div>
                 <ol className="space-y-3">
                   {[
-                    "Browse approved businesses on the homepage",
-                    "Pick a service and choose an available time",
-                    "Enter your details and confirm the booking",
-                    "Receive an email confirmation instantly",
+                    "Create a Booklyx account and verify your email",
+                    "Browse approved businesses and pick a service",
+                    "Choose an available date and time slot",
+                    "Book and receive an email confirmation",
                   ].map((step, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
                       <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center mt-0.5">
@@ -260,6 +258,9 @@ export default function Home() {
                     </li>
                   ))}
                 </ol>
+                <p className="mt-4 text-xs text-muted-foreground/80 border-t border-border/40 pt-3">
+                  A verified Booklyx account is required to book. This helps prevent spam and ensures you receive confirmations.
+                </p>
               </Card>
             </Reveal>
           </div>
@@ -271,47 +272,47 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-6 py-20">
           <Reveal>
             <p className="text-center text-sm font-medium text-primary/80 tracking-wide uppercase mb-2">
-              Features
+              What&apos;s included
             </p>
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center mb-4 tracking-tight">
-              Everything you need, nothing you don't
+              Built for small service businesses
             </h2>
             <p className="text-center text-muted-foreground max-w-xl mx-auto mb-14">
-              Manage your appointments, team, and availability from one dashboard.
+              Services, staff, schedules, and bookings — managed from a single dashboard.
             </p>
           </Reveal>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
               {
-                icon: <Calendar className="w-5 h-5" />,
-                title: "Schedule management",
-                desc: "Define weekly availability templates. Booklyx calculates open slots automatically — no manual slot creation.",
+                icon: <CalendarCheck className="w-5 h-5" />,
+                title: "Schedule templates",
+                desc: "Define weekly availability per staff member. Open time slots are calculated automatically based on service duration.",
               },
               {
                 icon: <Users className="w-5 h-5" />,
-                title: "Multi-staff support",
-                desc: "Add team members, assign them to services, and manage individual schedules from one place.",
+                title: "Staff management",
+                desc: "Add team members, assign them to specific services, and manage individual availability.",
               },
               {
                 icon: <Bell className="w-5 h-5" />,
                 title: "Email notifications",
-                desc: "Automatic confirmation emails to customers and booking alerts to business owners.",
+                desc: "Automatic confirmation emails to customers and real-time booking alerts to the business owner.",
               },
               {
                 icon: <Shield className="w-5 h-5" />,
-                title: "Business approval",
-                desc: "Every business is reviewed before going live. Customers see only verified, approved listings.",
+                title: "Admin review",
+                desc: "Every business is manually reviewed before going live. Customers only see approved, vetted listings.",
               },
               {
                 icon: <Clock className="w-5 h-5" />,
                 title: "Conflict prevention",
-                desc: "Real-time availability checks prevent double bookings and time-slot collisions.",
+                desc: "Overlapping bookings are blocked at the server level. Each time slot is checked before confirmation.",
               },
               {
                 icon: <LayoutDashboard className="w-5 h-5" />,
                 title: "Owner dashboard",
-                desc: "View incoming bookings, manage services and staff, and update your business profile.",
+                desc: "View incoming bookings, manage services and staff, and update your business profile from one place.",
               },
             ].map((f, i) => (
               <Reveal key={f.title} delay={i * 0.06}>
@@ -333,19 +334,19 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-6 py-20">
           <Reveal>
             <p className="text-center text-sm font-medium text-primary/80 tracking-wide uppercase mb-2">
-              Built with care
+              How we keep it safe
             </p>
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center mb-14 tracking-tight">
-              Quality you can rely on
+              Built-in safeguards
             </h2>
           </Reveal>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: <Shield className="w-4 h-4" />, label: "Rate limiting", desc: "Abuse protection built in" },
-              { icon: <CheckCircle className="w-4 h-4" />, label: "Email verification", desc: "OTP-verified accounts" },
-              { icon: <Clock className="w-4 h-4" />, label: "Conflict checks", desc: "No double bookings" },
-              { icon: <UserCheck className="w-4 h-4" />, label: "Manual review", desc: "Every business vetted" },
+              { icon: <Shield className="w-4 h-4" />, label: "Rate limiting", desc: "Automated abuse protection" },
+              { icon: <CheckCircle className="w-4 h-4" />, label: "Verified accounts", desc: "OTP email verification" },
+              { icon: <Clock className="w-4 h-4" />, label: "Overlap checks", desc: "Server-side conflict detection" },
+              { icon: <UserCheck className="w-4 h-4" />, label: "Manual review", desc: "Every business is vetted" },
             ].map((item, i) => (
               <Reveal key={item.label} delay={i * 0.06}>
                 <div className="rounded-xl border border-border/60 bg-background p-4 text-center hover:border-primary/20 transition-colors">
@@ -387,8 +388,8 @@ export default function Home() {
                   <Building2 className="w-6 h-6 text-muted-foreground" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">No businesses listed yet</h3>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-6">
-                  Be the first to set up your booking page and start accepting appointments.
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
+                  The directory is empty for now. If you run a service business, you can be the first to set up your booking page.
                 </p>
                 <Link href="/auth/register">
                   <Button variant="outline" size="sm" className="gap-1.5">
@@ -408,7 +409,7 @@ export default function Home() {
                         {biz.logo && (
                           <img
                             src={biz.logo}
-                            alt=""
+                            alt={`${biz.name} logo`}
                             className="h-8 mb-3 object-contain"
                           />
                         )}
@@ -433,7 +434,7 @@ export default function Home() {
                           )}
                         </div>
                         <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
-                          Book appointment <ArrowRight className="w-3.5 h-3.5" />
+                          View &amp; book <ArrowRight className="w-3.5 h-3.5" />
                         </Button>
                       </div>
                     </Card>
@@ -454,8 +455,8 @@ export default function Home() {
                 Ready to accept bookings?
               </h2>
               <p className="text-muted-foreground max-w-md mx-auto mb-8">
-                Create your business profile, add your services, and share your
-                booking link — all for free.
+                Create your business profile, add your services, submit for review,
+                and share your booking link — all free.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link href="/auth/register">

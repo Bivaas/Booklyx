@@ -131,7 +131,25 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         // @ts-ignore - user type extension
         token.emailVerified = user.emailVerified;
+        token.roleRefreshedAt = Date.now();
       }
+
+      // Refresh role from DB every 2 minutes so admin approval takes effect without re-login
+      const ROLE_REFRESH_INTERVAL = 2 * 60 * 1000;
+      const lastRefresh = (token.roleRefreshedAt as number) || 0;
+      if (Date.now() - lastRefresh > ROLE_REFRESH_INTERVAL && token.email) {
+        try {
+          await connectDb();
+          const dbUser = await User.findOne({ email: token.email }).select("role").lean();
+          if (dbUser) {
+            token.role = dbUser.role;
+          }
+          token.roleRefreshedAt = Date.now();
+        } catch {
+          // If DB lookup fails, keep existing role — will retry next interval
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {

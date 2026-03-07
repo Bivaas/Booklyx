@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { AlertCircle, CheckCircle, Calendar, ArrowLeft } from "lucide-react";
+import { AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 
 export default function RegisterPage() {
@@ -102,9 +102,7 @@ export default function RegisterPage() {
         {/* Brand */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-5 group">
-            <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-sm">
-              <Calendar className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img src="/logo.png" alt="Booklyx" className="w-9 h-9 rounded-lg object-contain" />
             <span className="text-xl font-semibold tracking-tight text-foreground">Booklyx</span>
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Create your account</h1>

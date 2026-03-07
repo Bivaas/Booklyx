@@ -29,7 +29,7 @@ export async function GET(
     const booking = await Booking.findById(id)
       .populate("serviceId", "name duration")
       .populate("staffId", "name")
-      .populate("businessId", "ownerId email"); // Needed for auth check
+      .populate("businessId", "ownerId name"); // Needed for auth check
 
     if (!booking) {
       return NextResponse.json(
@@ -40,13 +40,12 @@ export async function GET(
 
     // Access Control:
     // 1. User is the customer
-    // 2. User is the business owner
+    // 2. User is the business owner (via ownerId)
     // 3. User is Admin
-    // Check safely for businessId populated fields
-    const businessEmail = booking.businessId?.email || null;
+    const businessOwnerId = booking.businessId?.ownerId || null;
     
     const isCustomer = booking.customerEmail === session.user.email;
-    const isOwner = businessEmail === session.user.email;
+    const isOwner = businessOwnerId === session.user.id;
     const isAdmin = session.user.role === Role.ADMIN;
 
     if (!isCustomer && !isOwner && !isAdmin) {
@@ -98,7 +97,7 @@ export async function PATCH(
 
     const business = await Business.findById(booking.businessId._id || booking.businessId);
     
-    const isOwner = business.email === session.user.email;
+    const isOwner = business?.ownerId === session.user.id;
     const isAdmin = session.user.role === Role.ADMIN;
     const isCustomer = booking.customerEmail === session.user.email;
 

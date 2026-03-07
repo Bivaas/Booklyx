@@ -16,33 +16,36 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Booklyx - Professional Booking Management System",
-  description: "Booklyx is a modern, developer-grade booking management system designed for reliability and seamless integration. Streamline your business bookings with Booklyx - smart scheduling, team management, and automated notifications.",
-  keywords: ["Booklyx", "booking system", "appointment booking", "booking management", "schedule management", "business booking", "online booking", "appointment scheduler", "booking software", "Booklyx booking"],
+  title: "Booklyx — Booking Management for Service Businesses",
+  description: "Set up a booking page for your service business. Add services, staff, and availability — customers book directly from your link. Free and admin-reviewed.",
   authors: [{ name: "Bivaas Baral", url: "https://bivaasbaral.com.np" }],
   creator: "Bivaas Baral",
   publisher: "Booklyx",
   robots: "index, follow",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://booklyx.vercel.app",
     siteName: "Booklyx",
-    title: "Booklyx - Professional Booking Management System",
-    description: "Streamline your business bookings with Booklyx. Modern booking management platform with smart scheduling, team management, and real-time notifications.",
+    title: "Booklyx — Booking Management for Service Businesses",
+    description: "Set up a booking page for your service business. Add services, staff, and availability — customers book directly from your link.",
     images: [
       {
         url: "https://booklyx.vercel.app/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Booklyx - Professional Booking Management System",
+        alt: "Booklyx — Booking management for service businesses",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Booklyx - Professional Booking Management System",
-    description: "Streamline your business bookings with Booklyx. Modern booking management platform with smart scheduling and automated notifications.",
+    title: "Booklyx — Booking Management for Service Businesses",
+    description: "Set up a booking page for your service business. Add services, staff, and availability — customers book directly from your link.",
     images: ["https://booklyx.vercel.app/og-image.png"],
   },
   metadataBase: new URL("https://booklyx.vercel.app"),
@@ -60,27 +63,17 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <ThemeScript />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/png" href="/logo.png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
         {/* Google Search Console Verification */}
         <meta name="google-site-verification" content="IlTuTqVA6pi_rgjh0scCGvJdJFIOaDD59IW7xRv1p2I" />
-        {/* SEO Meta Tags */}
-        <meta name="keywords" content="Booklyx, Free booking, Local Business Booking, online booking, appointment, business management, booking software, appointment scheduler, free business booking, local business, appointment management, booking platform, business automation, service booking, staff scheduling, calendar, SaaS booking, business growth, customer booking, instant booking, modern booking, professional booking, business appointments" />
-        <meta name="description" content="Booklyx is the ultimate free booking platform for local businesses. Manage appointments, staff, and services with ease. Streamline your business with Booklyx – the best solution for local business booking and free online appointment management." />
         {/* Schema.org Structured Data */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
           "name": "Booklyx",
           "url": "https://booklyx.vercel.app",
-          "description": "Booklyx is the ultimate free booking platform for local businesses. Manage appointments, staff, and services with ease. Streamline your business with Booklyx – the best solution for local business booking and free online appointment management.",
-          "keywords": [
-            "Booklyx",
-            "Free booking",
-            "Local Business Booking",
-            "Online booking",
-            "Appointment scheduler",
-            "Business management"
-          ],
+          "description": "Free booking management for service businesses. Add services, staff, and availability — customers book directly from your link.",
           "publisher": {
             "@type": "Organization",
             "name": "Booklyx",

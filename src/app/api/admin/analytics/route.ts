@@ -19,15 +19,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check admin role (same as business-approval)
-    const adminEmails = process.env.ADMIN_EMAILS?.split(",") || [];
-    const isAdmin = adminEmails.includes(session.user.email);
+    await connectDb();
+
+    // Unified admin check: DB role first, env fallback
+    const user = await User.findOne({ email: session.user.email });
+    const adminEmails = process.env.ADMIN_EMAILS?.split(",").map(e => e.trim()) || [];
+    const isAdmin = user?.role === "admin" || adminEmails.includes(session.user.email);
     
     if (!isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
-    await connectDb();
 
     // Get all counts we need
     const totalUsers = await User.countDocuments();
