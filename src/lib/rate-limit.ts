@@ -6,9 +6,9 @@ import "server-only";
  * Primary: Upstash Redis for distributed rate limiting
  * Fallback: In-memory store if Redis unavailable
  * 
- * OTP Rate Limiting (STRICT):
- * - 1 OTP per email per device fingerprint per network per 24 hours
- * - Uses IP + device fingerprint + email as composite key
+ * OTP Rate Limiting:
+ * - 4 OTPs per email (user) per 24 hours
+ * - 6 OTPs per IP address per 24 hours (across all users)
  * - Redis enables this across all instances
  */
 
@@ -138,34 +138,42 @@ export async function checkRateLimit(
 }
 
 /**
- * OTP request rate limit (EXTREMELY STRICT)
- * 
+ * OTP request rate limit
+ *
  * Rules:
- * - 1 OTP per email per device per network per 24 hours
- * - Uses composite key: IP + email + device fingerprint
+ * - 4 OTPs per email (user) per 24 hours
+ * - 6 OTPs per IP address per 24 hours (across all users from that IP)
  * - Redis for distributed enforcement
- * - Returns generic error (no hints to attackers)
- * 
+ *
  * @param email - User email
  * @param ipAddress - Client IP address
- * @param deviceFingerprint - Device fingerprint (user agent + IP hash)
- * @returns true if allowed, false if rate limited
+ * @returns Object with `allowed` flag and optional `limitType` ("user" | "ip")
  */
 export async function checkOTPRateLimit(
   email: string,
-  ipAddress: string,
-  deviceFingerprint: string
-): Promise<boolean> {
-  // Composite key: IP + email + device fingerprint for multi-layer protection
-  const identifier = `otp:${ipAddress}:${email}:${deviceFingerprint}`;
-  
-  if (isRedisConfigured()) {
-    // Redis: 1 OTP per email per device per network per 24 hours
-    return checkRateLimitRedis(identifier, 1, 24 * 60 * 60); // 24 hours
+  ipAddress: string
+): Promise<{ allowed: boolean; limitType?: "user" | "ip" }> {
+  // User-based limit: 4 OTPs per email per 24 hours
+  const userIdentifier = `otp:user:${email}`;
+  const userAllowed = isRedisConfigured()
+    ? await checkRateLimitRedis(userIdentifier, 4, 24 * 60 * 60)
+    : checkRateLimitInMemory(userIdentifier, 4, 24 * 60 * 60 * 1000);
+
+  if (!userAllowed) {
+    return { allowed: false, limitType: "user" };
   }
-  
-  // Fallback: In-memory (same limits, but per-instance only)
-  return checkRateLimitInMemory(identifier, 1, 24 * 60 * 60 * 1000);
+
+  // IP-based limit: 6 OTPs per IP per 24 hours (across all users)
+  const ipIdentifier = `otp:ip:${ipAddress}`;
+  const ipAllowed = isRedisConfigured()
+    ? await checkRateLimitRedis(ipIdentifier, 6, 24 * 60 * 60)
+    : checkRateLimitInMemory(ipIdentifier, 6, 24 * 60 * 60 * 1000);
+
+  if (!ipAllowed) {
+    return { allowed: false, limitType: "ip" };
+  }
+
+  return { allowed: true };
 }
 
 /**

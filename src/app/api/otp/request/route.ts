@@ -5,52 +5,40 @@ import { OTP } from "@/lib/models/otp";
 import { generateOTP, hashEmail, hashString } from "@/lib/crypto";
 import { checkOTPRateLimit, getClientIP } from "@/lib/rate-limit";
 import { sendOTPEmail } from "@/lib/notifications";
-import crypto from "crypto";
 
 const requestOTPSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
 /**
- * Generate device fingerprint from user agent and IP
- * Used for strict rate limiting (1 OTP per device per network per 24 hours)
- */
-function generateDeviceFingerprint(userAgent: string, ipAddress: string): string {
-  return crypto
-    .createHash("sha256")
-    .update(`${userAgent}:${ipAddress}`)
-    .digest("hex");
-}
-
-/**
  * POST /api/otp/request
  * 
  * Request an OTP for email verification
  * 
- * STRICT RATE LIMITING (Redis-backed):
- * - 1 OTP per email per device per network per 24 hours
- * - Composite key: IP + email + device fingerprint
- * - Generic error message (no hints to attackers)
- * - Returns 429 if rate limited
+ * RATE LIMITING (Redis-backed):
+ * - 4 OTPs per email (user) per 24 hours
+ * - 6 OTPs per IP address per 24 hours (across all users)
+ * - Returns 429 if rate limited with a message indicating which limit was hit
  */
 export async function POST(request: Request) {
   try {
     const clientIP = getClientIP(request);
-    const userAgent = request.headers.get("user-agent") || "unknown";
-    const deviceFingerprint = generateDeviceFingerprint(userAgent, clientIP);
 
     const body = await request.json();
     const { email } = requestOTPSchema.parse(body);
     const emailHash = hashEmail(email);
 
-    // STRICT RATE LIMITING: 1 OTP per email per device per network per 24 hours
+    // RATE LIMITING: 4 OTPs per user per 24h, 6 OTPs per IP per 24h
     // Uses Redis for distributed enforcement
-    const allowed = await checkOTPRateLimit(email, clientIP, deviceFingerprint);
-    if (!allowed) {
-      // Generic error message - no hints to attackers
+    const rateLimitResult = await checkOTPRateLimit(email, clientIP);
+    if (!rateLimitResult.allowed) {
+      const message =
+        rateLimitResult.limitType === "ip"
+          ? "Too many OTP requests from your network. Please try again later."
+          : "You have requested too many verification codes. Please try again later.";
       return NextResponse.json(
         { 
-          error: "Too many OTP requests. Please try again later.",
+          error: message,
           code: "RATE_LIMITED"
         },
         { status: 429 }

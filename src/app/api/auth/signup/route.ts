@@ -64,10 +64,10 @@ export async function POST(request: Request) {
     // DISPOSABLE EMAIL CHECK: Block before rate limiting
     const emailDomainError = validateEmailDomain(email);
     if (emailDomainError) {
-      // Log attempt but return generic error
+      // Log attempt but return informative yet safe error
       return NextResponse.json(
         {
-          error: "Unable to process signup. Please try again.",
+          error: "Unable to complete registration. Please use a valid, permanent email address.",
           code: "SIGNUP_FAILED",
         },
         { status: 400 }
@@ -76,23 +76,25 @@ export async function POST(request: Request) {
 
     // SIGNUP RATE LIMITING (Pre-OTP): Max 1 per device, max 2 per IP per 24h
     if (!validateSignupLimits(deviceFingerprint, clientIP)) {
-      // Block silently - return generic error
       return NextResponse.json(
         {
-          error: "Unable to process signup. Please try again.",
+          error: "Too many signup attempts from this device or network. Please try again later.",
           code: "SIGNUP_FAILED",
         },
         { status: 400 }
       );
     }
 
-    // STRICT OTP RATE LIMITING: 1 OTP per email per device per network per 24 hours
-    const allowed = await checkOTPRateLimit(email, clientIP, deviceFingerprint);
-    if (!allowed) {
-      // Block silently
+    // STRICT OTP RATE LIMITING: 4 OTPs per user per 24h, 6 OTPs per IP per 24h
+    const rateLimitResult = await checkOTPRateLimit(email, clientIP);
+    if (!rateLimitResult.allowed) {
+      const message =
+        rateLimitResult.limitType === "ip"
+          ? "Too many verification code requests from your network. Please try again later."
+          : "You have requested too many verification codes for this account. Please try again later.";
       return NextResponse.json(
         {
-          error: "Unable to process signup. Please try again.",
+          error: message,
           code: "SIGNUP_FAILED",
         },
         { status: 400 }
@@ -130,10 +132,9 @@ export async function POST(request: Request) {
     if (existingOTP) {
       const timeSinceCreation = Date.now() - existingOTP.createdAt.getTime();
       if (timeSinceCreation < 60000) {
-        // Block silently
         return NextResponse.json(
           {
-            error: "Unable to process signup. Please try again.",
+            error: "A verification code was recently sent to this email. Please wait before requesting a new one.",
             code: "SIGNUP_FAILED",
           },
           { status: 400 }

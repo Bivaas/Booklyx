@@ -8,34 +8,24 @@ import { checkOTPRateLimit, getClientIP } from "@/lib/rate-limit";
 import { otpRequestSchema } from "@/lib/schemas/auth";
 import { sendOTPEmail } from "@/lib/notifications";
 import env from "@/lib/env";
-import crypto from "crypto";
-
-/**
- * Generate device fingerprint from user agent and IP
- */
-function generateDeviceFingerprint(userAgent: string, ipAddress: string): string {
-  return crypto
-    .createHash("sha256")
-    .update(`${userAgent}:${ipAddress}`)
-    .digest("hex");
-}
-
 export async function POST(request: Request) {
   try {
     const clientIP = getClientIP(request);
-    const userAgent = request.headers.get("user-agent") || "unknown";
-    const deviceFingerprint = generateDeviceFingerprint(userAgent, clientIP);
     
     const body = await request.json().catch(() => ({}));
     const { email } = otpRequestSchema.parse(body);
     const emailHash = hashEmail(email);
 
-    // Strict rate limiting: 1 OTP per email per device per network per 24 hours
-    const allowed = await checkOTPRateLimit(email, clientIP, deviceFingerprint);
-    if (!allowed) {
+    // Rate limiting: 4 OTPs per user per 24h, 6 OTPs per IP per 24h
+    const rateLimitResult = await checkOTPRateLimit(email, clientIP);
+    if (!rateLimitResult.allowed) {
+      const message =
+        rateLimitResult.limitType === "ip"
+          ? "Too many OTP requests from your network. Please try again later."
+          : "You have requested too many verification codes. Please try again later.";
       return NextResponse.json(
         {
-          error: "Too many OTP requests. Please try again later.",
+          error: message,
           code: "RATE_LIMITED",
         },
         { status: 429 }
