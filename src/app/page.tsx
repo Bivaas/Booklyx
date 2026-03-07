@@ -3,12 +3,28 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Calendar, Users, Bell, ArrowRight, LogOut } from "lucide-react";
-import { motion } from "framer-motion";
+import {
+  Calendar,
+  Users,
+  Bell,
+  ArrowRight,
+  LogOut,
+  CheckCircle,
+  Shield,
+  Clock,
+  Building2,
+  Search,
+  ChevronRight,
+  Phone,
+  MapPin,
+  Sparkles,
+  LayoutDashboard,
+  UserCheck,
+} from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 
 interface Business {
   id: string;
@@ -21,379 +37,488 @@ interface Business {
   color: string;
 }
 
+function BrandMark({ className = "w-8 h-8" }: { className?: string }) {
+  return (
+    <div className={`${className} bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-sm`}>
+      <Calendar className="w-[60%] h-[60%] text-primary-foreground" />
+    </div>
+  );
+}
+
+// Reusable section reveal wrapper
+function Reveal({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const reduced = useReducedMotion();
+  return (
+    <motion.div
+      initial={reduced ? {} : { opacity: 0, y: 24 }}
+      whileInView={reduced ? {} : { opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.5, delay, ease: "easeOut" }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export default function Home() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Helper function to get display name from email or user name
-  const getDisplayName = (user: any) => {
-    if (user.name) return user.name;
-    // Extract name from email (before @)
-    const emailPrefix = user.email?.split('@')[0] || 'User';
-    // Capitalize first letter
-    return emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
-  };
+  const reduced = useReducedMotion();
 
   useEffect(() => {
-    fetchBusinesses();
+    (async () => {
+      try {
+        const res = await fetch("/api/businesses");
+        if (res.ok) {
+          const data = await res.json();
+          setBusinesses(data.businesses || []);
+        }
+      } catch {
+        // silent
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const fetchBusinesses = async () => {
-    try {
-      const res = await fetch("/api/businesses");
-      if (res.ok) {
-        const data = await res.json();
-        setBusinesses(data.businesses || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch businesses:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
   return (
-    <>
-      {/* Schema.org LocalBusiness Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "LocalBusiness",
-            "name": "Booklyx",
-            "image": "https://booklyx.vercel.app/og-image.png",
-            "url": "https://booklyx.vercel.app",
-            "description": "Booklyx is a free booking platform for local businesses. Manage appointments, staff, and services with ease. Streamline your business with Booklyx – the best solution for local business booking and free online appointment management.",
-            "address": {
-              "@type": "PostalAddress",
-              "addressCountry": "NP"
-            },
-            "areaServed": "Worldwide",
-            "keywords": [
-              "Booklyx",
-              "Free booking",
-              "Local Business Booking",
-              "Online booking",
-              "Appointment scheduler",
-              "Business management"
-            ]
-          })
-        }}
-      />
-      <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b border-border/60 bg-card/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link 
-            href="/" 
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            onClick={(e) => {
-              e.preventDefault();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              window.history.pushState({}, '', '/');
-            }}
-          >
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center shadow-sm">
-              <Calendar className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">Booklyx</h1>
+    <div className="min-h-screen bg-background">
+      {/* ─── Nav ─── */}
+      <nav className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <BrandMark />
+            <span className="text-lg font-semibold tracking-tight text-foreground">
+              Booklyx
+            </span>
           </Link>
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center gap-2">
             {status === "loading" ? (
-              <div className="w-8 h-8 border-2 border-border border-t-primary rounded-full animate-spin" />
+              <div className="w-7 h-7 border-2 border-border border-t-primary rounded-full animate-spin" />
             ) : session?.user ? (
-              <div className="flex items-center gap-3">
+              <>
                 <Link href="/dashboard">
-                  <Button variant="ghost" size="sm">Dashboard</Button>
+                  <Button variant="ghost" size="sm" className="gap-1.5">
+                    <LayoutDashboard className="w-4 h-4" />
+                    Dashboard
+                  </Button>
                 </Link>
                 <Link href="/auth/signout">
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <Button variant="outline" size="sm" className="gap-1.5">
                     <LogOut className="w-4 h-4" />
                     Sign Out
                   </Button>
                 </Link>
-                <ThemeToggle />
-              </div>
+              </>
             ) : (
               <>
                 <Link href="/auth/signin">
-                  <Button variant="ghost">Sign In</Button>
+                  <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
                 <Link href="/auth/register">
-                  <Button>Get Started</Button>
+                  <Button size="sm">Get Started</Button>
                 </Link>
-                <ThemeToggle />
               </>
             )}
+            <ThemeToggle />
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section id="home" className="relative max-w-4xl mx-auto px-6 py-32">
-        {/* Decorative gradient blur */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10" />
-        
-        <motion.div 
-          className="text-center mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <motion.div 
-            className="inline-block mb-6"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+      {/* ─── Hero ─── */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(var(--color-primary)/0.06),transparent_60%)] pointer-events-none" />
+        <div className="max-w-3xl mx-auto px-6 pt-24 pb-20 text-center relative">
+          <motion.div
+            initial={reduced ? {} : { opacity: 0, y: 16 }}
+            animate={reduced ? {} : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary mb-6">
-              ✨ Free Local Business Booking Platform
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/8 border border-primary/15 text-xs font-medium text-primary mb-6">
+              <Sparkles className="w-3.5 h-3.5" />
+              Appointment scheduling, simplified
             </span>
           </motion.div>
-          <h1 className="text-6xl font-bold text-foreground mb-6 tracking-tight leading-tight">
-            Booklyx: <span className="block bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Free Booking for Local Businesses</span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Booklyx is the ultimate <strong>free booking</strong> platform for <strong>local businesses</strong>. Manage appointments, staff, and services with ease. Streamline your business with Booklyx – the best solution for <strong>local business booking</strong> and <strong>free online appointment management</strong>.
-          </p>
-          <div className="flex justify-center gap-3 flex-wrap mt-8">
-            <Link href="/auth/signin">
-              <Button size="lg" className="gap-2">
-                Get Started <ArrowRight className="w-4 h-4" />
+
+          <motion.h1
+            className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.1] mb-5"
+            initial={reduced ? {} : { opacity: 0, y: 20 }}
+            animate={reduced ? {} : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            Your booking page,
+            <br />
+            <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              ready in minutes
+            </span>
+          </motion.h1>
+
+          <motion.p
+            className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed mb-8"
+            initial={reduced ? {} : { opacity: 0, y: 20 }}
+            animate={reduced ? {} : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            Set up services, add your team, define your availability, and share a
+            clean booking link with your customers. No clutter, no cost.
+          </motion.p>
+
+          <motion.div
+            className="flex flex-col sm:flex-row items-center justify-center gap-3"
+            initial={reduced ? {} : { opacity: 0, y: 20 }}
+            animate={reduced ? {} : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Link href="/auth/register">
+              <Button size="lg" className="gap-2 w-full sm:w-auto">
+                Create your booking page
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
-            <Link href="/docs">
-              <Button variant="outline" size="lg">
-                Documentation
+            <a href="#businesses">
+              <Button variant="outline" size="lg" className="gap-2 w-full sm:w-auto">
+                <Search className="w-4 h-4" />
+                Browse businesses
               </Button>
-            </Link>
-          </div>
-        </motion.div>
+            </a>
+          </motion.div>
+        </div>
       </section>
 
-      {/* Businesses Listing Section */}
-      <section id="businesses" className="max-w-6xl mx-auto px-6 py-20 border-t border-border/60">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">Book Local Businesses Instantly</h2>
-          <p className="text-muted-foreground text-lg">Browse and book appointments with approved businesses using Booklyx – the free booking platform for local business owners and customers.</p>
-        </div>
+      {/* ─── How It Works ─── */}
+      <section className="border-t border-border/40 bg-card/30">
+        <div className="max-w-5xl mx-auto px-6 py-20">
+          <Reveal>
+            <p className="text-center text-sm font-medium text-primary/80 tracking-wide uppercase mb-2">
+              How it works
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center mb-14 tracking-tight">
+              Two sides, one platform
+            </h2>
+          </Reveal>
 
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="w-10 h-10 border-2 border-border border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading businesses...</p>
-          </div>
-        ) : businesses.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No businesses available yet. Check back soon!</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {businesses.map((business) => (
-              <Link key={business.id} href={`/${business.slug}`}>
-                <Card className="hover:shadow-lg hover:border-primary/30 transition-all duration-300 cursor-pointer h-full" style={{ borderTopColor: business.color, borderTopWidth: "4px" }}>
-                  <div className="p-6">
-                    {business.logo && (
-                      <img src={business.logo} alt={business.name} className="h-10 mb-3 object-contain" />
-                    )}
-                    <h3 className="font-bold text-lg text-foreground mb-2">{business.name}</h3>
-                    {business.description && (
-                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{business.description}</p>
-                    )}
-                    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-                      {business.phone && <span>📞 {business.phone}</span>}
-                      {business.address && <span className="line-clamp-1">📍 {business.address}</span>}
-                    </div>
-                    <div className="mt-4">
-                      <Button variant="outline" size="sm" className="w-full">
-                        Book Now <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </div>
+          <div className="grid md:grid-cols-2 gap-10">
+            {/* For Business Owners */}
+            <Reveal delay={0.1}>
+              <Card className="p-6 h-full border-border/60">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Building2 className="w-5 h-5 text-primary" />
                   </div>
+                  <h3 className="font-semibold text-foreground text-lg">For business owners</h3>
+                </div>
+                <ol className="space-y-3">
+                  {[
+                    "Create an account and register your business",
+                    "Add services, staff, and set your schedule",
+                    "Submit for approval — reviewed by our team",
+                    "Share your booking link and accept appointments",
+                  ].map((step, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center mt-0.5">
+                        {i + 1}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </Card>
+            </Reveal>
+
+            {/* For Customers */}
+            <Reveal delay={0.2}>
+              <Card className="p-6 h-full border-border/60">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <UserCheck className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground text-lg">For customers</h3>
+                </div>
+                <ol className="space-y-3">
+                  {[
+                    "Browse approved businesses on the homepage",
+                    "Pick a service and choose an available time",
+                    "Enter your details and confirm the booking",
+                    "Receive an email confirmation instantly",
+                  ].map((step, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center mt-0.5">
+                        {i + 1}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </Card>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Features ─── */}
+      <section className="border-t border-border/40">
+        <div className="max-w-5xl mx-auto px-6 py-20">
+          <Reveal>
+            <p className="text-center text-sm font-medium text-primary/80 tracking-wide uppercase mb-2">
+              Features
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center mb-4 tracking-tight">
+              Everything you need, nothing you don't
+            </h2>
+            <p className="text-center text-muted-foreground max-w-xl mx-auto mb-14">
+              Manage your appointments, team, and availability from one dashboard.
+            </p>
+          </Reveal>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              {
+                icon: <Calendar className="w-5 h-5" />,
+                title: "Schedule management",
+                desc: "Define weekly availability templates. Booklyx calculates open slots automatically — no manual slot creation.",
+              },
+              {
+                icon: <Users className="w-5 h-5" />,
+                title: "Multi-staff support",
+                desc: "Add team members, assign them to services, and manage individual schedules from one place.",
+              },
+              {
+                icon: <Bell className="w-5 h-5" />,
+                title: "Email notifications",
+                desc: "Automatic confirmation emails to customers and booking alerts to business owners.",
+              },
+              {
+                icon: <Shield className="w-5 h-5" />,
+                title: "Business approval",
+                desc: "Every business is reviewed before going live. Customers see only verified, approved listings.",
+              },
+              {
+                icon: <Clock className="w-5 h-5" />,
+                title: "Conflict prevention",
+                desc: "Real-time availability checks prevent double bookings and time-slot collisions.",
+              },
+              {
+                icon: <LayoutDashboard className="w-5 h-5" />,
+                title: "Owner dashboard",
+                desc: "View incoming bookings, manage services and staff, and update your business profile.",
+              },
+            ].map((f, i) => (
+              <Reveal key={f.title} delay={i * 0.06}>
+                <Card className="p-5 h-full border-border/60 group hover:border-primary/20 hover:shadow-sm transition-all duration-200">
+                  <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center text-primary mb-4 group-hover:bg-primary/12 transition-colors">
+                    {f.icon}
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-1.5">{f.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
                 </Card>
-              </Link>
+              </Reveal>
             ))}
           </div>
-        )}
-      </section>
-
-      {/* Features Grid */}
-      <section id="features" className="max-w-6xl mx-auto px-6 py-24">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-foreground mb-4">Everything You Need for Free Booking</h2>
-          <p className="text-muted-foreground text-lg">Powerful features designed for local businesses, professionals, and service providers. Booklyx makes <strong>free booking</strong> and <strong>local business booking</strong> effortless.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Feature 1 */}
-          <Card className="hover:shadow-lg hover:border-primary/20 transition-all duration-300 group">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300">
-                <Calendar className="w-6 h-6 text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-foreground mb-2 text-lg">Smart Scheduling</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Intuitive calendar interface with real-time availability management and conflict prevention.
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Feature 2 */}
-          <Card className="hover:shadow-lg hover:border-primary/20 transition-all duration-300 group">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300">
-                <Users className="w-6 h-6 text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-foreground mb-2 text-lg">Team Management</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Manage multiple staff members, their services, and individual availability rules.
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Feature 3 */}
-          <Card className="hover:shadow-lg hover:border-primary/20 transition-all duration-300 group">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300">
-                <Bell className="w-6 h-6 text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-foreground mb-2 text-lg">Notifications</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Automated email reminders and confirmations for bookings, cancellations, and updates.
-                </p>
-              </div>
-            </div>
-          </Card>
         </div>
       </section>
 
-      {/* Capabilities Section */}
-      <section id="capabilities" className="max-w-6xl mx-auto px-6 py-24 border-t border-border/60">
-        <div className="mb-16 text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-4">Built for Local Business Success</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Booklyx is designed for <strong>local businesses</strong> and professionals who want to grow with a secure, scalable, and modern <strong>booking platform</strong>.
-          </p>
-        </div>
+      {/* ─── Trust / Quality ─── */}
+      <section className="border-t border-border/40 bg-card/30">
+        <div className="max-w-5xl mx-auto px-6 py-20">
+          <Reveal>
+            <p className="text-center text-sm font-medium text-primary/80 tracking-wide uppercase mb-2">
+              Built with care
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center mb-14 tracking-tight">
+              Quality you can rely on
+            </h2>
+          </Reveal>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: "Dark Mode", desc: "Full theme support", icon: "🌓" },
-            { label: "Accessibility", desc: "WCAG compliant", icon: "♿" },
-            { label: "Real-time Sync", desc: "Live updates", icon: "⚡" },
-            { label: "API First", desc: "REST endpoints", icon: "🔌" },
-            { label: "Rate Limiting", desc: "DDoS protection", icon: "🛡️" },
-            { label: "Email Digest", desc: "Smart notifications", icon: "📧" },
-            { label: "Audit Logs", desc: "Full tracking", icon: "📊" },
-            { label: "Mobile Ready", desc: "Responsive design", icon: "📱" },
-          ].map((item) => (
-            <div key={item.label} className="bg-gradient-to-br from-secondary to-secondary/50 rounded-xl p-5 hover:shadow-md transition-all duration-300 border border-border/40 hover:border-primary/20">
-              <div className="text-2xl mb-2">{item.icon}</div>
-              <p className="font-semibold text-foreground text-sm mb-1">{item.label}</p>
-              <p className="text-xs text-muted-foreground">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section id="cta" className="max-w-4xl mx-auto px-6 py-24">
-        <div className="bg-gradient-to-br from-secondary to-secondary/50 dark:from-slate-800 dark:to-slate-700 text-foreground rounded-2xl p-12 text-center shadow-xl border border-border/40 dark:border-border/60">
-          <h2 className="text-3xl font-bold mb-4">Ready to grow your local business with free booking?</h2>
-          <p className="mb-8 text-muted-foreground text-lg">
-            Set up your <strong>free booking</strong> system in minutes with Booklyx. No credit card required. Empower your <strong>local business</strong> today!
-          </p>
-          <div className="flex justify-center gap-3 flex-wrap">
-            <Link href="/auth/signin">
-              <Button variant="default" size="lg" className="bg-primary hover:bg-primary/90">
-                Start Free
-              </Button>
-            </Link>
-            <Button variant="outline" size="lg">
-              Contact Sales
-            </Button>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { icon: <Shield className="w-4 h-4" />, label: "Rate limiting", desc: "Abuse protection built in" },
+              { icon: <CheckCircle className="w-4 h-4" />, label: "Email verification", desc: "OTP-verified accounts" },
+              { icon: <Clock className="w-4 h-4" />, label: "Conflict checks", desc: "No double bookings" },
+              { icon: <UserCheck className="w-4 h-4" />, label: "Manual review", desc: "Every business vetted" },
+            ].map((item, i) => (
+              <Reveal key={item.label} delay={i * 0.06}>
+                <div className="rounded-xl border border-border/60 bg-background p-4 text-center hover:border-primary/20 transition-colors">
+                  <div className="w-8 h-8 mx-auto rounded-lg bg-primary/8 flex items-center justify-center text-primary mb-3">
+                    {item.icon}
+                  </div>
+                  <p className="font-medium text-foreground text-sm mb-0.5">{item.label}</p>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-card mt-20 py-12">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+      {/* ─── Businesses / Discovery ─── */}
+      <section id="businesses" className="border-t border-border/40 scroll-mt-20">
+        <div className="max-w-5xl mx-auto px-6 py-20">
+          <Reveal>
+            <p className="text-center text-sm font-medium text-primary/80 tracking-wide uppercase mb-2">
+              Directory
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center mb-3 tracking-tight">
+              Approved businesses
+            </h2>
+            <p className="text-center text-muted-foreground max-w-md mx-auto mb-12">
+              Browse verified businesses and book an appointment directly.
+            </p>
+          </Reveal>
+
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <div className="w-8 h-8 border-2 border-border border-t-primary rounded-full animate-spin" />
+            </div>
+          ) : businesses.length === 0 ? (
+            <Reveal>
+              <div className="text-center py-16 px-4">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-muted/60 flex items-center justify-center mb-4">
+                  <Building2 className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">No businesses listed yet</h3>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-6">
+                  Be the first to set up your booking page and start accepting appointments.
+                </p>
+                <Link href="/auth/register">
+                  <Button variant="outline" size="sm" className="gap-1.5">
+                    Register your business <ChevronRight className="w-3.5 h-3.5" />
+                  </Button>
+                </Link>
+              </div>
+            </Reveal>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {businesses.map((biz, i) => (
+                <Reveal key={biz.id} delay={i * 0.05}>
+                  <Link href={`/${biz.slug}`}>
+                    <Card className="h-full border-border/60 overflow-hidden group hover:border-primary/25 hover:shadow-md transition-all duration-200 cursor-pointer">
+                      <div className="h-1" style={{ backgroundColor: biz.color }} />
+                      <div className="p-5">
+                        {biz.logo && (
+                          <img
+                            src={biz.logo}
+                            alt=""
+                            className="h-8 mb-3 object-contain"
+                          />
+                        )}
+                        <h3 className="font-semibold text-foreground mb-1.5 group-hover:text-primary transition-colors">
+                          {biz.name}
+                        </h3>
+                        {biz.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                            {biz.description}
+                          </p>
+                        )}
+                        <div className="flex flex-col gap-1 text-xs text-muted-foreground mb-4">
+                          {biz.phone && (
+                            <span className="flex items-center gap-1.5">
+                              <Phone className="w-3 h-3" /> {biz.phone}
+                            </span>
+                          )}
+                          {biz.address && (
+                            <span className="flex items-center gap-1.5 line-clamp-1">
+                              <MapPin className="w-3 h-3" /> {biz.address}
+                            </span>
+                          )}
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
+                          Book appointment <ArrowRight className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </Card>
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ─── Final CTA ─── */}
+      <section className="border-t border-border/40">
+        <div className="max-w-3xl mx-auto px-6 py-20">
+          <Reveal>
+            <div className="rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/15 p-10 sm:p-14 text-center">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
+                Ready to accept bookings?
+              </h2>
+              <p className="text-muted-foreground max-w-md mx-auto mb-8">
+                Create your business profile, add your services, and share your
+                booking link — all for free.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link href="/auth/register">
+                  <Button size="lg" className="gap-2 w-full sm:w-auto">
+                    Get started <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+                <Link href="/docs">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                    Read the docs
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ─── Footer ─── */}
+      <footer className="border-t border-border/50 bg-card/50">
+        <div className="max-w-5xl mx-auto px-6 py-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-8">
             <div>
-              <p className="font-semibold text-foreground text-sm mb-4">Product</p>
-              <ul className="space-y-3 text-sm">
-                <li><a href="#home" className="text-muted-foreground hover:text-foreground transition">Home</a></li>
-                <li><a href="#features" className="text-muted-foreground hover:text-foreground transition">Features</a></li>
-                <li><a href="#capabilities" className="text-muted-foreground hover:text-foreground transition">Capabilities</a></li>
+              <p className="font-medium text-foreground text-sm mb-3">Product</p>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#businesses" className="text-muted-foreground hover:text-foreground transition-colors">Businesses</a></li>
+                <li><Link href="/docs" className="text-muted-foreground hover:text-foreground transition-colors">Documentation</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-foreground text-sm mb-4">Resources</p>
-              <ul className="space-y-3 text-sm">
-                <li><Link href="/docs" className="text-muted-foreground hover:text-foreground transition">Documentation</Link></li>
-                <li><Link href="/auth/signin" className="text-muted-foreground hover:text-foreground transition">Sign In</Link></li>
-                <li><a href="#cta" className="text-muted-foreground hover:text-foreground transition">Get Started</a></li>
+              <p className="font-medium text-foreground text-sm mb-3">Account</p>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/auth/signin" className="text-muted-foreground hover:text-foreground transition-colors">Sign In</Link></li>
+                <li><Link href="/auth/register" className="text-muted-foreground hover:text-foreground transition-colors">Create Account</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-foreground text-sm mb-4">Developer</p>
-              <ul className="space-y-3 text-sm">
-                <li><a href="https://github.com/bivaas" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">GitHub</a></li>
-                <li><Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition">Dashboard</Link></li>
-                <li><a href="mailto:bivaasbaral7@gmail.com" className="text-muted-foreground hover:text-foreground transition">Support</a></li>
+              <p className="font-medium text-foreground text-sm mb-3">Developer</p>
+              <ul className="space-y-2 text-sm">
+                <li><a href="https://github.com/bivaas" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">GitHub</a></li>
+                <li><a href="mailto:bivaasbaral7@gmail.com" className="text-muted-foreground hover:text-foreground transition-colors">Contact</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-foreground text-sm mb-4">Company</p>
-              <ul className="space-y-3 text-sm">
-                <li><a href="https://bivaasbaral.com.np" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">Portfolio</a></li>
-                <li><a href="https://bivaas.me" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">About</a></li>
-                <li><a href="mailto:bivaasbaral7@gmail.com" className="text-muted-foreground hover:text-foreground transition">Contact</a></li>
+              <p className="font-medium text-foreground text-sm mb-3">Author</p>
+              <ul className="space-y-2 text-sm">
+                <li><a href="https://bivaasbaral.com.np" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">Portfolio</a></li>
+                <li><a href="https://bivaas.me" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">About</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-border/60 pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-sm">
-              <div className="text-center md:text-left">
-                <p className="text-muted-foreground mb-2">&copy; 2026 Booklyx. All rights reserved.</p>
-                <p className="text-muted-foreground">
-                  Built with precision by{" "}
-                  <a
-                    href="https://bivaasbaral.com.np"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-foreground hover:text-primary transition-colors"
-                  >
-                    Bivaas Baral
-                  </a>
-                  {" "}•{" "}
-                  <a
-                    href="https://bivaas.me"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    About
-                  </a>
-                </p>
-              </div>
-              <div className="flex gap-6">
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">Twitter</a>
-                <a href="https://github.com/bivaas" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">GitHub</a>
-                <a href="https://www.linkedin.com/in/bivaas/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">LinkedIn</a>
-              </div>
+
+          <div className="border-t border-border/50 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+            <p>&copy; {new Date().getFullYear()} Booklyx. Built by{" "}
+              <a href="https://bivaasbaral.com.np" target="_blank" rel="noopener noreferrer" className="text-foreground hover:text-primary transition-colors font-medium">Bivaas Baral</a>.
+            </p>
+            <div className="flex gap-5">
+              <a href="https://github.com/bivaas" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</a>
+              <a href="https://www.linkedin.com/in/bivaas/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">LinkedIn</a>
             </div>
           </div>
         </div>
       </footer>
-      </div>
-    </>
+    </div>
   );
 }

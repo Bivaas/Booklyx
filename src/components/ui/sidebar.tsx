@@ -3,8 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { Calendar } from "lucide-react";
 
 interface SidebarItem {
   href: string;
@@ -31,9 +31,7 @@ export function Sidebar({ items, className }: SidebarProps) {
           }}
         >
           <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center shadow-sm">
-            <svg className="w-5 h-5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+            <Calendar className="w-5 h-5 text-primary-foreground" />
           </div>
           <h2 className="text-lg font-semibold text-foreground tracking-tight">Booklyx</h2>
         </Link>

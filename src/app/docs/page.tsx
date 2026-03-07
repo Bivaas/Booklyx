@@ -136,19 +136,28 @@ export default function DocsPage() {
                 </p>
                 <div className="space-y-3">
                   <div className="p-3 bg-primary/5 rounded-lg">
-                    <p className="text-sm font-medium text-foreground mb-1">✅ Why We Verify</p>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                      <p className="text-sm font-medium text-foreground">Why We Verify</p>
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       Verification confirms account ownership, prevents spam, and ensures booking confirmations reach you.
                     </p>
                   </div>
                   <div className="p-3 bg-primary/5 rounded-lg">
-                    <p className="text-sm font-medium text-foreground mb-1">⏱️ Code Expiration</p>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Clock className="w-3.5 h-3.5 text-primary" />
+                      <p className="text-sm font-medium text-foreground">Code Expiration</p>
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       Verification codes expire after 5 minutes for security. You can request a new code if needed.
                     </p>
                   </div>
                   <div className="p-3 bg-primary/5 rounded-lg">
-                    <p className="text-sm font-medium text-foreground mb-1">🔒 Security First</p>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Shield className="w-3.5 h-3.5 text-primary" />
+                      <p className="text-sm font-medium text-foreground">Security First</p>
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       Your email is never shared with third parties and is only used for essential account communications.
                     </p>
@@ -371,7 +380,7 @@ export default function DocsPage() {
           <Card className="p-12 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <h3 className="text-3xl font-bold text-foreground mb-4">Ready to Get Started?</h3>
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join hundreds of businesses using Booklyx to streamline their booking process
+              Start using Booklyx to streamline your booking process today.
             </p>
             <div className="flex items-center justify-center gap-4">
               <Link href="/auth/register">

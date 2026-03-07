@@ -1,13 +1,19 @@
 import "server-only";
 import { z } from "zod";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   AUTH_URL: z.string().url().optional(),
   NEXTAUTH_URL: z.string().url().optional(),
-  MONGODB_URI: z.string().min(1).optional().default("mongodb://localhost:27017/appointments"),
-  AUTH_SECRET: z.string().min(1).optional().default("dev-secret-change-in-production"),
+  MONGODB_URI: isProduction
+    ? z.string().min(1, "MONGODB_URI is required in production")
+    : z.string().min(1).optional().default("mongodb://localhost:27017/appointments"),
+  AUTH_SECRET: isProduction
+    ? z.string().min(32, "AUTH_SECRET must be at least 32 characters in production")
+    : z.string().min(1).optional().default("dev-secret-change-in-production"),
   NEXTAUTH_SECRET: z.string().optional(),
   AUTH_GOOGLE_ID: z.string().optional(),
   AUTH_GOOGLE_SECRET: z.string().optional(),
@@ -30,7 +36,7 @@ const env = envSchema.parse({
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM,
   ADMIN_EMAILS: process.env.ADMIN_EMAILS,
-  ENABLE_TEST_MODE: process.env.ENABLE_TEST_MODE,
+  ENABLE_TEST_MODE: isProduction ? "false" : process.env.ENABLE_TEST_MODE,
 });
 
 export default env;

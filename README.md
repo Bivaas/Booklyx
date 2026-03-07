@@ -1,508 +1,204 @@
-# Appointment Booking System (Booklyx)
+# Booklyx
 
-A secure, modern appointment booking platform with business approval workflow, email OTP verification, and resource protection.
+A secure appointment booking platform with business approval, email-verified accounts, and role-based access.
 
-## 🚀 Key Features
+## Features
 
 ### For Customers
-- **Email OTP Verification** - No account required, verify via 6-digit code
-- **Public Booking** - Browse approved businesses and book appointments
-- **Email Confirmations** - Automatic booking confirmation emails
-- **Rate Limited** - Protected against spam and abuse
+- **Verified Accounts** — Register with email + OTP verification, then sign in to book
+- **Public Booking Pages** — Browse approved businesses at `/<slug>` and book appointments
+- **Email Confirmations** — Automatic booking confirmation emails via Resend
+- **Abuse Prevention** — Rate limiting and 1 booking per user per business per day
 
 ### For Business Owners
-- **Business Registration** - Submit business for admin approval
-- **Admin Dashboard** - Manage bookings, services, and staff
-- **Real-time Availability** - Dynamic slot generation (no database bloat)
-- **Multi-Service Support** - Offer multiple services with different durations
-- **Google OAuth** - Easy authentication
+- **Business Registration** — Submit your business for admin approval
+- **Owner Dashboard** — Manage bookings, services, staff, and schedules
+- **Dynamic Availability** — Slot generation from schedule templates (no database bloat)
+- **Multi-Service Support** — Multiple services with distinct pricing and duration
 
 ### For Administrators
-- **Business Approval System** - Review and approve/suspend businesses
-- **Analytics Dashboard** - View system stats and activity
-- **Lightweight Admin Panel** - MongoDB aggregation-based analytics
+- **Business Approval** — Review, approve, or suspend businesses
+- **Analytics** — System stats via MongoDB aggregation
+- **Role Management** — ADMIN, OWNER, STAFF, CUSTOMER roles
 
-### Security Features ✅
-- ✅ **Input Validation** - Zod schemas on all API endpoints
-- ✅ **XSS Prevention** - HTML sanitization for user inputs
-- ✅ **Rate Limiting** - In-memory rate limiter (Redis-free)
-- ✅ **OTP Verification** - Required before booking
-- ✅ **Booking Limits** - Max 7 bookings per email per day per business
-- ✅ **Business Approval** - Only approved businesses appear publicly
-- ✅ **No Sensitive Logging** - Production-safe error handling
-
-## 📚 Documentation
-
-- **[SECURITY.md](./SECURITY.md)** - Security features and best practices
-- **[IMPLEMENTATION.md](./IMPLEMENTATION.md)** - Detailed implementation guide
-- **[.env.example](./.env.example)** - Environment variable template
+### Security
+- Input validation with Zod schemas on all API endpoints
+- XSS prevention via HTML sanitization
+- In-memory rate limiting (Redis-free)
+- OTP email verification at signup (codes expire in 5 minutes)
+- Booking limits: 1 per user per business per day
+- Account warm-up period (15 minutes) before first booking
+- Only approved businesses appear publicly
+- Production fail-fast for missing critical env vars
 
 ## Tech Stack
 
-- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui
-- **Backend**: Next.js API Routes, MongoDB (mongoose + native)
-- **Authentication**: NextAuth 4 + Google OAuth
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, Framer Motion
+- **Backend**: Next.js API Routes, MongoDB (Mongoose + native client)
+- **Auth**: NextAuth 4 (Google OAuth + email/password credentials)
 - **Email**: Resend with React email templates
-- **Validation**: Zod 4 schemas with sanitization
-- **Security**: In-memory rate limiting, OTP verification
+- **Validation**: Zod 4, react-hook-form
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js 20+
-- MongoDB (local or MongoDB Atlas)
+- MongoDB (local or Atlas)
 - Google OAuth credentials
-- Resend API key (for emails)
+- Resend API key
 
 ### Installation
 
 ```bash
-# Clone and install
-git clone <repo>
-cd booklyx
 npm install
-
-# Setup environment
 cp .env.example .env
-
-# Required environment variables:
-# MONGODB_URI - MongoDB connection string
-# AUTH_SECRET - Generate with: openssl rand -base64 64
-# AUTH_GOOGLE_ID - From Google Cloud Console
-# AUTH_GOOGLE_SECRET - From Google Cloud Console
-# RESEND_API_KEY - From Resend.com
-# EMAIL_FROM - Verified sender email
-# ADMIN_EMAILS - Comma-separated admin emails
-
-# Start development server
 npm run dev
 ```
 
-### Post-Install: Create MongoDB Indexes
+### Required Environment Variables
 
-After first run, execute in MongoDB shell:
-
-```javascript
-db.otps.createIndex({ "createdAt": 1 }, { expireAfterSeconds: 300 })
-db.verifiedusers.createIndex({ "verifiedAt": 1 }, { expireAfterSeconds: 86400 })
-db.businesses.createIndex({ "status": 1 })
-db.businesses.createIndex({ "status": 1, "createdAt": -1 })
-db.bookings.createIndex({ "businessId": 1, "startTime": 1 })
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## 🔄 User Flows
-
-### Customer Booking Flow
-1. Browse public businesses at `/booking/[slug]`
-2. Select service and time slot
-3. Enter email → Request OTP via `POST /api/otp/request`
-4. Verify OTP → Get verification token via `POST /api/otp/verify`
-5. Submit booking with token → `POST /api/bookings`
-6. Receive confirmation email
-
-### Business Registration Flow
-1. Sign in with Google OAuth
-2. Register business via `POST /api/business` (status: PENDING)
-3. Admin reviews in admin dashboard
-4. Admin approves via `POST /api/admin/business-approval`
-5. Business status → APPROVED
-6. Business appears in public listings
-
-### Admin Workflow
-1. Sign in with admin email (from ADMIN_EMAILS)
-2. Access `/api/admin/business-approval` to view pending businesses
-3. Approve or suspend businesses
-4. View analytics at `/api/admin/analytics`
-
-## Project Routes
-
-### Public Routes
-| Route | Purpose |
-|-------|---------|
-| `/` | Home page |
-| `/booking/[slug]` | Public booking page (APPROVED businesses only) |
-| `/auth/signin` | Google OAuth sign-in |
-
-### Protected Routes (Business Owners)
-| Route | Purpose |
-|-------|---------|
-| `/dashboard` | Admin dashboard |
-| `/dashboard/services` | Manage services |
-| `/dashboard/staff` | Manage staff |
-| `/dashboard/business` | Business settings |
-
-### Admin-Only Routes
-| Route | Purpose |
-|-------|---------|
-| `/api/admin/business-approval` | Approve/suspend businesses |
-| `/api/admin/analytics` | System analytics |
-
-## Database Models
-
-### Core Models
-- **Business** - Business profiles with status (PENDING/APPROVED/SUSPENDED)
-- **Service** - Services with pricing and duration
-- **Staff** - Team members with schedules
-- **Schedule** - Availability templates (not individual slots)
-- **Booking** - Appointments with conflict prevention
-- **User** - Business owners (via NextAuth) with roles
-
-### Security Models
-- **OTP** - Email verification codes (TTL: 5 minutes)
-- **VerifiedUser** - Temporary verified emails (TTL: 24 hours)
-
-### NextAuth Models (Auto-created)
-- accounts, sessions, users, verification_tokens
-
-## API Endpoints
-
-### Public
-- `POST /api/otp/request` - Request OTP for email verification
-- `POST /api/otp/verify` - Verify OTP and get token
-- `POST /api/bookings` - Create booking (requires verification token)
-- `GET /api/business/[slug]` - Get business details (APPROVED only)
-
-### Protected (Business Owners)
-- `POST /api/business` - Register new business (→ PENDING status)
-- `GET /api/business` - Get own business details
-- `PATCH /api/business/[slug]` - Update business settings
-- `GET /api/bookings` - List bookings for business
-- `PATCH /api/bookings/[id]` - Update booking status
-- `POST /api/services` - Create service (requires APPROVED business)
-- `GET /api/services` - List services
-- `PATCH /api/services/[id]` - Update service
-- `POST /api/staff` - Create staff member
-- `GET /api/staff` - List staff
-- `POST /api/schedules` - Create schedule template
-
-### Admin-Only
-- `POST /api/admin/business-approval` - Approve or suspend business
-- `GET /api/admin/business-approval?status=pending` - List businesses by status
-- `GET /api/admin/analytics` - System analytics (aggregation-based)
-
-## Environment Variables
-
-**Required:**
 ```env
 MONGODB_URI=mongodb+srv://...
-AUTH_SECRET=<64-char-random-string>
+AUTH_SECRET=<generate with: openssl rand -base64 64>
+AUTH_GOOGLE_ID=<from Google Cloud Console>
+AUTH_GOOGLE_SECRET=<from Google Cloud Console>
 RESEND_API_KEY=re_...
 EMAIL_FROM=noreply@yourdomain.com
 ADMIN_EMAILS=admin@example.com
 ```
 
-**Optional:**
-```env
-AUTH_GOOGLE_ID=<google-oauth-id>
-AUTH_GOOGLE_SECRET=<google-oauth-secret>
-NEXT_PUBLIC_APP_URL=https://yourdomain.com
-```
+### MongoDB Indexes
 
-See [.env.example](./.env.example) for complete template.
-
-## Security Features
-
-### Rate Limiting (In-Memory)
-- OTP requests: 5 per 15 minutes per email
-- Bookings: 10 per minute per IP
-- Business registration: 3 per hour per IP
-- General API: 100 per minute
-
-### Input Validation
-- All API inputs validated with Zod schemas
-- HTML/XSS sanitization on user inputs
-- Email format validation
-- Slug format validation (alphanumeric + hyphens)
-
-### Booking Protection
-- Email OTP verification required
-- Max 7 bookings per email per day per business
-- Race condition prevention (conflict checking)
-- Business must be APPROVED
-
-### Data Privacy
-- No permanent customer accounts
-- Temporary verified users (24h TTL)
-- OTP auto-expires (5 min TTL)
-- Hashed email storage (SHA-256)
-
-## MongoDB Indexes
-
-**Critical indexes** (create after deployment):
+Create after first run:
 
 ```javascript
-// TTL indexes (auto-cleanup)
 db.otps.createIndex({ "createdAt": 1 }, { expireAfterSeconds: 300 })
 db.verifiedusers.createIndex({ "verifiedAt": 1 }, { expireAfterSeconds: 86400 })
-
-// Performance indexes
 db.businesses.createIndex({ "status": 1 })
 db.businesses.createIndex({ "status": 1, "createdAt": -1 })
 db.bookings.createIndex({ "businessId": 1, "startTime": 1 })
 db.bookings.createIndex({ "customerId": 1 })
 ```
 
+## User Flows
+
+### Customer Booking
+1. Register an account at `/auth/register` (email + password + OTP verification)
+2. Sign in at `/auth/signin`
+3. Browse approved businesses on the homepage
+4. Visit `/<slug>` to view a business's booking page
+5. Select service, date, and time slot
+6. Enter contact details (must use registered email)
+7. Receive confirmation email
+
+### Business Registration
+1. Sign in (Google OAuth or email/password)
+2. Go to Dashboard > Business and submit your business details
+3. Admin reviews and approves (status: PENDING → APPROVED)
+4. Business appears in public listings and can accept bookings
+
+### Admin
+1. Sign in with an email listed in `ADMIN_EMAILS`
+2. Approve or suspend businesses from the admin dashboard
+3. View system analytics
+
+## Routes
+
+### Public
+| Route | Purpose |
+|-------|---------|
+| `/` | Homepage with business directory |
+| `/[slug]` | Public booking page (approved businesses) |
+| `/auth/signin` | Sign in (Google OAuth or credentials) |
+| `/auth/register` | Account registration with OTP |
+| `/docs` | Help and documentation |
+
+### Dashboard (Authenticated)
+| Route | Purpose |
+|-------|---------|
+| `/dashboard` | Bookings overview |
+| `/dashboard/business` | Business profile / registration |
+| `/dashboard/services` | Manage services (Owner) |
+| `/dashboard/staff` | Manage staff (Owner) |
+| `/dashboard/schedules` | Manage schedules (Owner) |
+| `/dashboard/profile` | User profile |
+| `/dashboard/admin` | Business approvals (Admin) |
+| `/dashboard/analytics` | System analytics (Admin) |
+
+## API Endpoints
+
+### Auth
+- `POST /api/auth/signup` — Register (email, password, name)
+- `POST /api/auth/request-otp` — Request email OTP
+- `POST /api/auth/verify-otp` — Verify OTP
+- `GET /api/auth/profile` — Get/update profile
+
+### Bookings
+- `POST /api/bookings` — Create booking (requires verified account)
+- `GET /api/bookings?businessId=<id>` — List bookings (owner/admin)
+- `PATCH /api/bookings/[id]` — Update booking status
+
+### Business
+- `POST /api/business` — Register business (→ PENDING)
+- `GET /api/businesses` — List approved businesses
+- `GET /api/business/[slug]` — Get business details
+
+### Services & Staff
+- `POST|GET /api/services` — Create / list services
+- `PATCH|DELETE /api/services/[id]` — Update / delete service
+- `POST|GET /api/staff` — Create / list staff
+- `PATCH|DELETE /api/staff/[id]` — Update / delete staff
+- `POST|GET /api/schedules` — Create / list schedules
+
+### Admin
+- `POST /api/admin/business-approval` — Approve or suspend business
+- `GET /api/admin/business-approval?status=pending` — List by status
+- `GET /api/admin/analytics` — System analytics
+
+### Availability
+- `POST /api/availability` — Check available time slots
+
+## Database Models
+
+| Model | Purpose |
+|-------|---------|
+| **Business** | Profiles with status (PENDING/APPROVED/SUSPENDED), ownerId |
+| **Service** | Services with pricing and duration |
+| **Staff** | Team members linked to services |
+| **Schedule** | Availability templates (day, start/end time) |
+| **Booking** | Appointments with conflict prevention |
+| **User** | Accounts with roles (ADMIN/OWNER/STAFF/CUSTOMER) |
+| **OTP** | Email verification codes (5-minute TTL) |
+| **VerifiedUser** | Verified email records (24-hour TTL) |
+
 ## Deployment
 
-### Vercel Deployment
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-
-# Set environment variables in Vercel dashboard
-# Create MongoDB indexes (see above)
-# Test OTP flow and business approval
+vercel deploy --prod
 ```
 
 ### Production Checklist
-- ✅ Set `NODE_ENV=production`
-- ✅ Use strong `AUTH_SECRET` (64+ chars)
-- ✅ Configure MongoDB Atlas (recommended)
-- ✅ Set up Resend with verified domain
-- ✅ Add admin emails to `ADMIN_EMAILS`
-- ✅ Create MongoDB TTL indexes
-- ✅ Test all critical flows
-
-## Project Status
-
-| Feature | Status |
-|---------|--------|
-| **Business Approval System** | ✅ Complete |
-| **Email OTP Verification** | ✅ Complete |
-| **Booking Limits** | ✅ Complete |
-| **Rate Limiting** | ✅ Complete |
-| **Input Sanitization** | ✅ Complete |
-| **Admin Analytics** | ✅ Complete |
-| **Dynamic Availability** | ✅ Complete |
-| Public booking page | ✅ Complete |
-| Email confirmations | ✅ Complete |
-| Admin dashboard UI | ✅ Complete |
-| Authentication | ✅ Complete |
-| Booking API | ✅ Complete |
-| Services API | ✅ Complete |
-| Staff API | ⚠️ Partial |
-| Schedules API | ⚠️ Partial |
-
-## Architecture Decisions
-
-### Why Mongoose + Native MongoDB?
-- **Mongoose**: Better TypeScript support, schema validation
-- **Native Client**: Required by NextAuth's MongoDBAdapter
-- Both share same connection pool (no performance penalty)
-
-### Why In-Memory Rate Limiting?
-- No Redis dependency
-- Sufficient for OTP/booking protection
-- Simple deployment (no external services)
-- For high scale, migrate to Upstash Redis
-
-### Why No Customer Accounts?
-- Privacy-friendly (GDPR compliant)
-- Simpler UX (no passwords)
-- Reduced database storage
-- TTL indexes auto-cleanup
-
-## Contributing
-
-When adding new features:
-1. Add Zod validation schema
-2. Sanitize user inputs
-3. Add rate limiting if sensitive
-4. Use conditional logging (dev only)
-5. Update documentation
-
-## License
-
-[Your License Here]
-
-## Support
-
-For detailed implementation notes, see:
-- [SECURITY.md](./SECURITY.md) - Security implementation details
-- [IMPLEMENTATION.md](./IMPLEMENTATION.md) - Feature implementation guide
-
----
-
-**Built with ❤️ using Next.js, MongoDB, and TypeScript**
-
-## Deployment
-
-### Vercel (Recommended)
-```bash
-# Push to GitHub
-git push origin main
-
-# Deploy to Vercel
-vercel deploy
-
-# Add environment variables in Vercel dashboard
-```
-
-### Other Platforms
-Works with any platform supporting Node.js (Heroku, Railway, etc.)
+- Set `NODE_ENV=production`
+- Use strong `AUTH_SECRET` (64+ chars)
+- Configure MongoDB Atlas
+- Set up Resend with verified domain
+- Add admin emails to `ADMIN_EMAILS`
+- Create MongoDB TTL indexes
 
 ## Development
 
 ```bash
-# Run development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
-
-# Run linter
-npm run lint
+npm run dev       # Start dev server
+npm run build     # Production build
+npm run lint      # Run linter
 ```
 
 ## Contributing
 
-See [IMPLEMENTATION.md](IMPLEMENTATION.md) for development guidelines and next steps.
-
-## License
-
-MIT
-
-│   └── globals.css         # Tailwind & theme
-├── components/
-│   └── ui/                 # shadcn/ui components
-├── lib/
-│   ├── auth.ts             # Auth.js configuration
-│   ├── db.ts               # MongoDB connection
-│   ├── env.ts              # Environment validation
-│   ├── models/             # Mongoose schemas
-│   │   ├── business.ts
-│   │   ├── user.ts
-│   │   ├── booking.ts
-│   │   ├── service.ts
-│   │   ├── staff.ts
-│   │   ├── schedule.ts
-│   │   └── audit-log.ts
-│   ├── schemas/            # Zod validation
-│   ├── notifications.ts    # Email service
-│   └── rate-limit.ts       # Rate limiting config
-└── middleware.ts           # RBAC enforcement
-```
-
-## Environment Setup
-
-1. **Copy env template**:
-   ```bash
-   cp .env.example .env.local
-   ```
-
-2. **Configure required variables**:
-   - `MONGODB_URI`: MongoDB Atlas connection string (free tier)
-   - `AUTH_SECRET`: Generate with `openssl rand -base64 32`
-   - `AUTH_GOOGLE_ID` & `AUTH_GOOGLE_SECRET`: From Google OAuth Console
-   - `RESEND_API_KEY`: From Resend dashboard
-   - `EMAIL_FROM`: Sender email address
-
-3. **(Optional) SMS Notifications**:
-   - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`
-
-## Installation
-
-```bash
-npm install
-npm run dev
-```
-
-Visit `http://localhost:3000`
-
-## Public Booking Pages
-
-Customers can book directly via tenant-aware URLs:
-
-```
-https://yourapp.com/acme-salon        # Dynamic booking page
-https://yourapp.com/green-clinic      # Per-business branding & services
-```
-
-Each page displays the business's:
-- Logo, colors, and branding
-- Available services
-- Staff schedules
-- Real-time availability slots
-
-## API Endpoints
-
-### Bookings
-- `POST /api/bookings` - Create booking
-- `GET /api/bookings?businessId=<id>` - List bookings
-- `GET /api/bookings/:id` - Get booking details
-- `PATCH /api/bookings/:id` - Update status (confirm/cancel)
-
-### Availability
-- `POST /api/availability` - Check available slots
-
-### Authentication
-- `GET/POST /api/auth/*` - Auth.js routes (signin, signout, callback)
-
-## Database Models
-
-### Business
-- name, email, ownerId, description, logo, website, phone, address, timezone, color
-
-### User
-- email, name, role (owner/staff/customer), businessId, isActive, lastLogin
-
-### Service
-- businessId, name, description, duration (minutes), price, color
-
-### Staff
-- businessId, userId, name, email, services[], isAvailable
-
-### Schedule
-- staffId, businessId, dayOfWeek, startTime, endTime, isRecurring
-
-### Booking
-- businessId, serviceId, staffId, customerId, customerName, customerEmail, customerPhone, startTime, endTime, status, notes
-
-### AuditLog
-- businessId, userId, action, resource, resourceId, details, ipAddress, userAgent
-
-## Security Measures
-
-1. **Authentication**: OAuth via Google + secure session handling (Auth.js)
-2. **Input Validation**: Zod schemas on all API inputs
-3. **CSRF Protection**: Built-in via Auth.js
-4. **Rate Limiting**: Booking endpoint limited to 5/hour per user
-5. **Audit Logging**: Track all admin actions
-6. **Time-based Locks**: Prevent double-booking with conflict detection
-7. **Authorization**: RBAC enforcement via middleware
-
-## Future Enhancements
-
-- [ ] SMS reminders via Twilio
-- [ ] Multi-timezone support
-- [ ] Recurring bookings
-- [ ] Payment processing (Stripe)
-- [ ] Calendar sync (Google Calendar, Outlook)
-- [ ] Video call integrations
-- [ ] Automated cancellation rules
-- [ ] Staff availability templates
-- [ ] Customer ratings & reviews
-- [ ] Analytics dashboard
-
-## Deployment
-
-1. **Push to GitHub**
-2. **Connect Vercel project**
-3. **Set environment variables in Vercel dashboard**
-4. **Deploy**: Vercel auto-deploys on push to main
-
-```bash
-# Quick deploy
-vercel deploy --prod
-```
+1. Add Zod validation for new API inputs
+2. Sanitize user-provided strings
+3. Add rate limiting for sensitive endpoints
+4. Use conditional logging (dev only)
 
 ## License
 

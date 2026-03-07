@@ -231,8 +231,21 @@ export async function GET(request: Request) {
 
     // If businessId is provided, check if user is OWNER of that business or ADMIN
     if (businessId) {
-       // TODO: Add ownership check here for security
-       // For now, focusing on the functionality split
+       const userRole = session.user.role;
+       const userId = session.user.id;
+
+       // Admin can view any business's bookings
+       if (userRole !== "admin") {
+         // Verify the user owns this business
+         const business = await Business.findById(businessId);
+         if (!business || business.ownerId !== userId) {
+           return NextResponse.json(
+             { error: "Forbidden - You do not have access to this business's bookings" },
+             { status: 403, headers: apiHeaders }
+           );
+         }
+       }
+
        query.businessId = businessId;
        
        const bookings = await Booking.find(query)

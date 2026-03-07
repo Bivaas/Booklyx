@@ -44,6 +44,7 @@ export default function DashboardPage() {
 
   const fetchBusinessAndBookings = async () => {
     try {
+      setError(null);
       setLoading(true);
       // 1. Get Business ID
       const busRes = await fetch("/api/business");
@@ -75,6 +76,7 @@ export default function DashboardPage() {
 
   const fetchUserBookings = async () => {
     try {
+      setError(null);
       setLoading(true);
       let url = "/api/bookings";
       if (filter !== "all") url += `?status=${filter}`;
