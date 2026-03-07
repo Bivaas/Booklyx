@@ -31,7 +31,7 @@ interface Business {
 }
 
 interface TimeSlot {
-  time: Date;
+  time: string;
   available: boolean;
 }
 
@@ -318,11 +318,7 @@ export default function PublicBookingPage({ params }: BookingPageProps) {
                         .filter((slot) => slot.available)
                         .slice(0, 12)
                         .map((slot, idx) => {
-                          const timeStr = new Date(slot.time).toLocaleTimeString("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          });
+                          const timeStr = slot.time;
                           return (
                             <label
                               key={idx}

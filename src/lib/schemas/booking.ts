@@ -16,7 +16,7 @@ export const bookingRequestSchema = z.object({
     .transform(sanitizeString),
   startTime: z.coerce.date(),
   notes: z.string().optional().transform((val) => val ? sanitizeString(val) : val),
-  verificationToken: z.string().min(1, "Email verification required"),
+  verificationToken: z.string().optional(),
 });
 
 export type BookingRequest = z.infer<typeof bookingRequestSchema>;
