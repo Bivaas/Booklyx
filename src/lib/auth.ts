@@ -80,11 +80,17 @@ providers.push(
       }
 
       // Track device login
-      // Extract IP from headers (req is RequestInternal in authorize callback)
-      const clientIP = (req.headers?.get?.("x-forwarded-for") as string)?.split(",")[0] || 
-                       (req.headers?.["x-real-ip"] as string) || 
+      // Extract IP and user-agent from headers
+      // NextAuth authorize callback may receive headers as Headers instance or plain object
+      const headers = req.headers as any;
+      const getHeader = (name: string): string | undefined => {
+        if (typeof headers?.get === "function") return headers.get(name) ?? undefined;
+        return headers?.[name] as string | undefined;
+      };
+      const clientIP = getHeader("x-forwarded-for")?.split(",")[0] || 
+                       getHeader("x-real-ip") || 
                        "unknown";
-      const userAgent = (req.headers?.get?.("user-agent") as string) || "";
+      const userAgent = getHeader("user-agent") || "unknown";
       await trackDeviceLogin(user._id.toString(), clientIP, userAgent);
 
       // Update last login
