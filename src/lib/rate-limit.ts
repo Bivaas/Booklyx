@@ -7,8 +7,8 @@ import "server-only";
  * Fallback: In-memory store if Redis unavailable
  * 
  * OTP Rate Limiting (STRICT):
- * - 1 OTP per email per device fingerprint per network per 24 hours
- * - Uses IP + device fingerprint + email as composite key
+ * - 4 OTPs per user (email + device fingerprint) per 24 hours
+ * - 6 OTPs per IP address per 24 hours (across all users)
  * - Redis enables this across all instances
  */
 
@@ -138,11 +138,11 @@ export async function checkRateLimit(
 }
 
 /**
- * OTP request rate limit (EXTREMELY STRICT)
+ * OTP request rate limit (STRICT)
  * 
  * Rules:
- * - 1 OTP per email per device per network per 24 hours
- * - Uses composite key: IP + email + device fingerprint
+ * - 4 OTPs per user (email + device) per 24 hours
+ * - 6 OTPs per IP address per 24 hours (across all users)
  * - Redis for distributed enforcement
  * - Returns generic error (no hints to attackers)
  * 
@@ -156,16 +156,24 @@ export async function checkOTPRateLimit(
   ipAddress: string,
   deviceFingerprint: string
 ): Promise<boolean> {
-  // Composite key: IP + email + device fingerprint for multi-layer protection
-  const identifier = `otp:${ipAddress}:${email}:${deviceFingerprint}`;
-  
+  // Per-user key: email + device fingerprint
+  const userIdentifier = `otp:${email}:${deviceFingerprint}`;
+  // Per-IP key: all OTPs from this IP
+  const ipIdentifier = `otp-ip:${ipAddress}`;
+
   if (isRedisConfigured()) {
-    // Redis: 1 OTP per email per device per network per 24 hours
-    return checkRateLimitRedis(identifier, 1, 24 * 60 * 60); // 24 hours
+    const [userAllowed, ipAllowed] = await Promise.all([
+      checkRateLimitRedis(userIdentifier, 4, 24 * 60 * 60),
+      checkRateLimitRedis(ipIdentifier, 6, 24 * 60 * 60),
+    ]);
+    return userAllowed && ipAllowed;
   }
   
   // Fallback: In-memory (same limits, but per-instance only)
-  return checkRateLimitInMemory(identifier, 1, 24 * 60 * 60 * 1000);
+  const windowMs = 24 * 60 * 60 * 1000;
+  const userAllowed = checkRateLimitInMemory(userIdentifier, 4, windowMs);
+  const ipAllowed = checkRateLimitInMemory(ipIdentifier, 6, windowMs);
+  return userAllowed && ipAllowed;
 }
 
 /**
