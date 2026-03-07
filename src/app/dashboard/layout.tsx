@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { LogOut, Calendar, Settings, Users, Package, ShieldCheck, User, Menu, X } from "lucide-react";
+import { LogOut, Calendar, Settings, Users, Package, ShieldCheck, User, Menu, X, Clock } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Role } from "@/lib/roles";
@@ -68,6 +68,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       { href: "/dashboard", label: "Incoming Bookings", icon: <Calendar className="w-4 h-4" /> },
       { href: "/dashboard/services", label: "Services", icon: <Package className="w-4 h-4" /> },
       { href: "/dashboard/staff", label: "Staff", icon: <Users className="w-4 h-4" /> },
+      { href: "/dashboard/schedules", label: "Schedules", icon: <Clock className="w-4 h-4" /> },
       { href: "/dashboard/business", label: "Business Profile", icon: <Settings className="w-4 h-4" /> },
     ];
   } else if (role === Role.ADMIN) {

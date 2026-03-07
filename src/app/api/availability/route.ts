@@ -31,11 +31,15 @@ export async function POST(request: Request) {
       startTime: { $gte: data.startDate, $lte: data.endDate },
     });
 
-    // Fetch staff schedules if staffId specified
+    // Fetch schedules - by staffId if specified, otherwise all for the business
     let schedules: any[] = [];
     if (data.staffId) {
       schedules = await Schedule.find({
         staffId: data.staffId,
+      });
+    } else {
+      schedules = await Schedule.find({
+        businessId: data.businessId,
       });
     }
 
