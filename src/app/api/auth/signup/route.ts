@@ -74,6 +74,29 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!env.RESEND_API_KEY || !env.EMAIL_FROM) {
+      return NextResponse.json(
+        { error: "Service temporarily unavailable. Please try again." },
+        { status: 503 }
+      );
+    }
+
+    await connectDb();
+
+    // Check if user already exists BEFORE applying rate limits.
+    // This prevents a failed signup (due to an already-registered email) from
+    // consuming the user's rate-limit quota for the next 24 hours.
+    const existingUser = await User.findOne({ email });
+    if (existingUser && existingUser.emailVerified) {
+      return NextResponse.json(
+        {
+          error: "Email already registered. Please sign in instead.",
+          code: "EMAIL_EXISTS",
+        },
+        { status: 409 }
+      );
+    }
+
     // SIGNUP RATE LIMITING (Pre-OTP): Max 1 per device, max 2 per IP per 24h
     if (!validateSignupLimits(deviceFingerprint, clientIP)) {
       // Block silently - return generic error
@@ -96,27 +119,6 @@ export async function POST(request: Request) {
           code: "SIGNUP_FAILED",
         },
         { status: 400 }
-      );
-    }
-
-    if (!env.RESEND_API_KEY || !env.EMAIL_FROM) {
-      return NextResponse.json(
-        { error: "Service temporarily unavailable. Please try again." },
-        { status: 503 }
-      );
-    }
-
-    await connectDb();
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser && existingUser.emailVerified) {
-      return NextResponse.json(
-        {
-          error: "Email already registered. Please sign in instead.",
-          code: "EMAIL_EXISTS",
-        },
-        { status: 409 }
       );
     }
 
