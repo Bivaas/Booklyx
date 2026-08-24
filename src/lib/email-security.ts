@@ -123,8 +123,6 @@ const DISPOSABLE_DOMAINS = new Set([
   "disposablemail.com",
   "email.ms",
   "mailcheck.co",
-  "create.proton.me",
-  "proton.me",
   "hidemail.net",
   "hidemail.com",
   "cuvox.de",

@@ -3,12 +3,6 @@ import { User } from "@/lib/models/user";
 import { connectDb } from "@/lib/db";
 import crypto from "crypto";
 
-interface DeviceInfo {
-  deviceName: string;
-  ipAddress: string;
-  userAgent: string;
-}
-
 /**
  * Generate a device fingerprint hash from user agent and IP
  */
@@ -72,10 +66,8 @@ export async function trackDeviceLogin(
     await connectDb();
 
     const deviceName = getDeviceName(userAgent);
-    const fingerprint = generateDeviceFingerprint(userAgent, ipAddress);
-
     // Find existing device
-    let device = await Device.findOne({
+    const device = await Device.findOne({
       userId,
       ipAddress,
     });

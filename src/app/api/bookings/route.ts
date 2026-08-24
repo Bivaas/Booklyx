@@ -191,7 +191,7 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch {
     // Don't log full error details in production (security)
     const isDev = process.env.NODE_ENV === "development";
     if (isDev) {
@@ -199,7 +199,7 @@ export async function POST(request: Request) {
     }
     
     return NextResponse.json(
-      { error: error?.message || "Failed to create booking" },
+      { error: "Failed to create booking" },
       { status: 500 }
     );
   }

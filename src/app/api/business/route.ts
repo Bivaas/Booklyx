@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     const clientIP = getClientIP(request);
     
     // Rate limiting: 3 registrations per hour per IP
-    if (!checkBusinessRegistrationRateLimit(clientIP)) {
+    if (!(await checkBusinessRegistrationRateLimit(clientIP))) {
       return NextResponse.json(
         { error: "Too many registration attempts. Please try again later." },
         { status: 429 }
@@ -129,7 +129,6 @@ export async function POST(request: Request) {
 
     // Store business ID on user for reference (do NOT escalate to OWNER yet)
     // User becomes OWNER only after admin approval
-    // @ts-ignore
     await import("@/lib/models/user").then(({ User }) => 
       User.findOneAndUpdate(
         { email: session.user.email },
@@ -154,14 +153,14 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error) {
     const isDev = process.env.NODE_ENV === "development";
     if (isDev) {
       console.error("Business registration error:", error);
     }
 
     return NextResponse.json(
-      { error: error?.message || "Failed to register business" },
+      { error: "Failed to register business" },
       { status: 500 }
     );
   }

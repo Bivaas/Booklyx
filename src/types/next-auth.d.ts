@@ -1,5 +1,4 @@
 import NextAuth from "next-auth";
-import { Role } from "@/lib/models/user";
 
 declare module "next-auth" {
   interface Session {

@@ -10,20 +10,6 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("system");
   const [mounted, setMounted] = useState(false);
 
-  // Only run on client-side
-  useEffect(() => {
-    setMounted(true);
-    const savedTheme = localStorage.getItem("theme") as Theme | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      applyTheme(savedTheme);
-    } else {
-      // Use system preference by default
-      setTheme("system");
-      applyTheme("system");
-    }
-  }, []);
-
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement;
     
@@ -38,6 +24,20 @@ export function ThemeToggle() {
       root.classList.add(newTheme);
     }
   };
+
+  // Only run on client-side
+  useEffect(() => {
+    setMounted(true);
+    const savedTheme = localStorage.getItem("theme") as Theme | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      applyTheme(savedTheme);
+    } else {
+      // Use system preference by default
+      setTheme("system");
+      applyTheme("system");
+    }
+  }, []);
 
   const toggleTheme = () => {
     let newTheme: Theme;

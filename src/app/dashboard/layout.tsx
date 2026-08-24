@@ -21,12 +21,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mounted, setMounted] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Handle undefined session during build/SSG
-  if (!session) {
-    return null;
-  }
-
-  const { data, status } = session;
+  const data = session?.data;
+  const status = session?.status;
 
   useEffect(() => {
     setMounted(true);
@@ -34,6 +30,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       router.push("/auth/signin?callbackUrl=/dashboard");
     }
   }, [status, router]);
+
+  // Handle undefined session during build/SSG
+  if (!session) {
+    return null;
+  }
 
   if (status === "loading") {
     return (

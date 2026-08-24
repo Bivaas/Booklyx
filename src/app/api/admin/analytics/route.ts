@@ -31,14 +31,25 @@ export async function GET(request: Request) {
     }
 
     // Get all counts we need
-    const totalUsers = await User.countDocuments();
-    const totalBookings = await Booking.countDocuments();
-    const totalStaff = await Staff.countDocuments();
-    const totalServices = await Service.countDocuments();
-    const totalBusinesses = await Business.countDocuments();
-    const approvedBusinesses = await Business.countDocuments({ status: "approved" });
-    const pendingBusinesses = await Business.countDocuments({ status: "pending" });
-    const suspendedBusinesses = await Business.countDocuments({ status: "suspended" });
+    const [
+      totalUsers,
+      totalBookings,
+      totalStaff,
+      totalServices,
+      totalBusinesses,
+      approvedBusinesses,
+      pendingBusinesses,
+      suspendedBusinesses,
+    ] = await Promise.all([
+      User.countDocuments(),
+      Booking.countDocuments(),
+      Staff.countDocuments(),
+      Service.countDocuments(),
+      Business.countDocuments(),
+      Business.countDocuments({ status: "approved" }),
+      Business.countDocuments({ status: "pending" }),
+      Business.countDocuments({ status: "suspended" }),
+    ]);
 
     return NextResponse.json({
       totalUsers,

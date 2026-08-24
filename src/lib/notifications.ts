@@ -2,6 +2,15 @@ import "server-only";
 import env from "./env";
 import { BookingConfirmationEmail, CancellationEmail } from "@/components/ui/email-template";
 
+function escapeHtml(value: string): string {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // Initialize Resend only if API key is available
 let resend: any = null;
 
@@ -75,8 +84,8 @@ export async function sendBusinessApprovalEmail(
       : `Business Application Update - ${businessName}`;
 
     const message = approved
-      ? `Congratulations! Your business "${businessName}" has been approved and is now live on our platform.`
-      : `Your business "${businessName}" application status has been updated. ${reason || ""}`;
+      ? `Congratulations! Your business "${escapeHtml(businessName)}" has been approved and is now live on our platform.`
+      : `Your business "${escapeHtml(businessName)}" application status has been updated. ${escapeHtml(reason || "")}`;
 
     await resendClient.emails.send({
       from: env.EMAIL_FROM || "noreply@example.com",
@@ -209,11 +218,11 @@ export async function sendBookingNotificationToOwner(
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>New Booking Received</h2>
-          <p><strong>Customer:</strong> ${customerName}</p>
-          <p><strong>Email:</strong> ${customerEmail}</p>
-          <p><strong>Contact:</strong> ${customerPhone || "Not provided"}</p>
-          <p><strong>Service:</strong> ${serviceName}</p>
-          <p><strong>Date & Time:</strong> ${formattedDate}</p>
+          <p><strong>Customer:</strong> ${escapeHtml(customerName)}</p>
+          <p><strong>Email:</strong> ${escapeHtml(customerEmail)}</p>
+          <p><strong>Contact:</strong> ${escapeHtml(customerPhone || "Not provided")}</p>
+          <p><strong>Service:</strong> ${escapeHtml(serviceName)}</p>
+          <p><strong>Date & Time:</strong> ${escapeHtml(formattedDate)}</p>
         </div>
       `,
     });
@@ -247,9 +256,9 @@ export async function sendBusinessEmailChangeNotification(
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Business Email Updated</h2>
-          <p>Your business <strong>${businessName}</strong> email has been changed.</p>
-          <p><strong>Old Email:</strong> ${oldEmail}</p>
-          <p><strong>New Email:</strong> ${newEmail}</p>
+          <p>Your business <strong>${escapeHtml(businessName)}</strong> email has been changed.</p>
+          <p><strong>Old Email:</strong> ${escapeHtml(oldEmail)}</p>
+          <p><strong>New Email:</strong> ${escapeHtml(newEmail)}</p>
           <p>Your next email change will be available after 3 months.</p>
           <p>If you did not make this change, please contact support immediately.</p>
         </div>

@@ -100,14 +100,14 @@ export async function POST(request: Request) {
         suspendedAt: business.suspendedAt,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     const isDev = process.env.NODE_ENV === "development";
     if (isDev) {
       console.error("Business approval error:", error);
     }
 
     return NextResponse.json(
-      { error: error?.message || "Failed to update business status" },
+      { error: "Failed to update business status" },
       { status: 500 }
     );
   }

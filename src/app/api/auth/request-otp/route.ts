@@ -76,7 +76,7 @@ export async function POST(request: Request) {
 
     await OTP.deleteMany({ emailHash });
 
-    const otpRecord = await OTP.create({
+    await OTP.create({
       emailHash,
       hashedOTP,
       attempts: 0,
@@ -85,11 +85,17 @@ export async function POST(request: Request) {
       createdAt: new Date(),
     });
 
-    sendOTPEmail(email, otp).catch((error) => {
+    try {
+      await sendOTPEmail(email, otp);
+    } catch {
       if (process.env.NODE_ENV === "development") {
         console.error("OTP email failed");
       }
-    });
+      return NextResponse.json(
+        { error: "Service temporarily unavailable. Please try again.", code: "SERVICE_UNAVAILABLE" },
+        { status: 503 }
+      );
+    }
 
     return NextResponse.json(
       {

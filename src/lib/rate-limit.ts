@@ -19,9 +19,6 @@ interface RateLimitEntry {
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
-// Track if Redis is active (checked on first use)
-let redisActive: boolean | null = null;
-
 /**
  * Check if Redis is available
  */
@@ -48,7 +45,7 @@ async function checkRateLimitRedis(
       return true; // Fallback if not configured
     }
 
-    const key = `rate:${identifier}`;
+    const key = encodeURIComponent(`rate:${identifier}`);
     
     const response = await fetch(`${url}/incr/${key}`, {
       method: "POST",
@@ -75,11 +72,9 @@ async function checkRateLimitRedis(
       }).catch(() => {}); // Non-critical
     }
 
-    redisActive = true;
     return count <= maxRequests;
   } catch (error) {
     console.error("Redis connection error, falling back to in-memory:", error);
-    redisActive = false;
     return checkRateLimitInMemory(identifier, maxRequests, windowSeconds * 1000);
   }
 }

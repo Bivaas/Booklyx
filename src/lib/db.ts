@@ -19,7 +19,10 @@ const globalState = global as typeof globalThis & {
 export async function connectDb() {
   if (!globalState.mongoosePromise) {
     // Cache the connection across hot reloads in development.
-    globalState.mongoosePromise = mongoose.connect(env.MONGODB_URI);
+    globalState.mongoosePromise = mongoose.connect(env.MONGODB_URI).catch((error) => {
+      globalState.mongoosePromise = undefined;
+      throw error;
+    });
   }
 
   return globalState.mongoosePromise;

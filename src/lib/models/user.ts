@@ -9,7 +9,7 @@ export enum Role {
 
 const UserSchema = new Schema(
   {
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     name: { type: String },
     password: { type: String }, // Hashed password for email/password login
     role: {
@@ -29,7 +29,7 @@ const UserSchema = new Schema(
     rememberMeTokens: [
       {
         token: String,
-        createdAt: { type: Date, default: Date.now, expires: 2592000 }, // 30 days
+        createdAt: { type: Date, default: Date.now },
       },
     ],
     // MFA fields
@@ -45,10 +45,8 @@ const UserSchema = new Schema(
   { timestamps: true }
 );
 
-UserSchema.index({ email: 1 });
 UserSchema.index({ businessId: 1, role: 1 });
 UserSchema.index({ emailVerified: 1 });
-UserSchema.index({ "rememberMeTokens.createdAt": 1 }, { sparse: true });
 UserSchema.index({ accountCreatedAt: 1 }); // For warm-up policy checks
 UserSchema.index({ riskScore: 1 }); // For finding high-risk accounts
 

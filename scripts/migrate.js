@@ -19,13 +19,6 @@ print("===================================\n");
 // 1. Create TTL Indexes
 print("Creating TTL indexes...");
 
-// OTP auto-deletion (5 minutes)
-db.otps.createIndex(
-  { "createdAt": 1 },
-  { expireAfterSeconds: 300 }
-);
-print("✓ OTP TTL index created (5 min)");
-
 // Verified users auto-deletion (24 hours)
 db.verifiedusers.createIndex(
   { "verifiedAt": 1 },
@@ -41,9 +34,6 @@ print("✓ Business status index created");
 
 db.businesses.createIndex({ "status": 1, "createdAt": -1 });
 print("✓ Business status + createdAt index created");
-
-db.businesses.createIndex({ "slug": 1 });
-print("✓ Business slug index created");
 
 db.bookings.createIndex({ "businessId": 1, "startTime": 1 });
 print("✓ Bookings businessId + startTime index created");

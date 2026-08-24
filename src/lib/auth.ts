@@ -3,12 +3,9 @@ import { getServerSession } from "next-auth";
 import type { Session } from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
-import mongoClientPromise from "@/lib/mongo-client";
 import { connectDb } from "@/lib/db";
 import { User } from "@/lib/models/user";
 import { trackDeviceLogin } from "@/lib/device-tracker";
-import { getClientIP } from "@/lib/rate-limit";
 import bcrypt from "bcryptjs";
 
 // Lazy-load env vars at request time, not module load time
@@ -23,7 +20,7 @@ function getAuthConfig() {
   return { googleId, googleSecret, authSecret, authUrl };
 }
 
-const { googleId, googleSecret, authSecret, authUrl } = getAuthConfig();
+const { googleId, googleSecret, authSecret } = getAuthConfig();
 
 const providers: any[] = [];
 
@@ -69,15 +66,10 @@ providers.push(
         throw new Error("Invalid password");
       }
 
-      // Check if session needs to be invalidated due to password change
-      // Sessions older than password change time are invalid
-      if (user.passwordChangedAt) {
-        const sessionCreatedAt = Math.floor(Date.now() / 1000);
-        const passwordChangedTime = Math.floor(user.passwordChangedAt.getTime() / 1000);
-        if (passwordChangedTime > sessionCreatedAt) {
-          throw new Error("Your password was recently changed. Please sign in again.");
-        }
-      }
+      // TODO: session invalidation on password change must be enforced in the jwt
+      // callback by comparing token.iat against user.passwordChangedAt. The check
+      // previously here compared passwordChangedAt against Date.now() and could
+      // never fire.
 
       // Track device login
       // Extract IP and user-agent from headers
@@ -127,9 +119,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
-        // @ts-ignore - user type extension
         token.role = user.role;
-        // @ts-ignore - user type extension
         token.emailVerified = user.emailVerified;
         token.roleRefreshedAt = Date.now();
       }
@@ -140,7 +130,9 @@ export const authOptions: NextAuthOptions = {
       if (Date.now() - lastRefresh > ROLE_REFRESH_INTERVAL && token.email) {
         try {
           await connectDb();
-          const dbUser = await User.findOne({ email: token.email }).select("role").lean();
+          const dbUser = await User.findOne({ email: token.email })
+            .select("role")
+            .lean<{ role?: string } | null>();
           if (dbUser) {
             token.role = dbUser.role;
           }

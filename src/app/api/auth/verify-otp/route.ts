@@ -47,8 +47,12 @@ export async function POST(request: Request) {
 
     const hashedOTP = hashString(otp);
     if (hashedOTP !== otpRecord.hashedOTP) {
-      otpRecord.attempts += 1;
-      await otpRecord.save();
+      const updatedOtp = await OTP.findOneAndUpdate(
+        { _id: otpRecord._id },
+        { $inc: { attempts: 1 } },
+        { new: true }
+      );
+      const currentAttempts = updatedOtp?.attempts ?? otpRecord.attempts + 1;
 
       // RISK SCORING: Increment risk score for failed OTP attempt
       const existingUser = await User.findOne({ email });
@@ -60,7 +64,7 @@ export async function POST(request: Request) {
         );
       }
 
-      const attemptsLeft = 3 - otpRecord.attempts;
+      const attemptsLeft = Math.max(0, 3 - currentAttempts);
       return NextResponse.json(
         {
           error: `Invalid OTP. ${attemptsLeft} attempt${attemptsLeft !== 1 ? "s" : ""} remaining.`,

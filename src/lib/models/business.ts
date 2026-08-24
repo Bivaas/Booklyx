@@ -10,7 +10,7 @@ const BusinessSchema = new Schema(
   {
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true, lowercase: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     ownerId: { type: String, required: true },
     description: { type: String },
     logo: { type: String },
@@ -35,7 +35,6 @@ const BusinessSchema = new Schema(
 );
 
 BusinessSchema.index({ ownerId: 1 });
-BusinessSchema.index({ slug: 1 });
 BusinessSchema.index({ status: 1 });
 BusinessSchema.index({ status: 1, createdAt: -1 });
 

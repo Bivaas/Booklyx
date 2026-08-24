@@ -22,10 +22,12 @@ export function verifyRememberMeToken(
   providedToken: string
 ): boolean {
   const providedHash = hashRememberMeToken(providedToken);
-  return crypto.timingSafeEqual(
-    Buffer.from(storedHash),
-    Buffer.from(providedHash)
-  );
+  const storedBuffer = Buffer.from(storedHash);
+  const providedBuffer = Buffer.from(providedHash);
+  if (storedBuffer.length !== providedBuffer.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(storedBuffer, providedBuffer);
 }
 
 /**
